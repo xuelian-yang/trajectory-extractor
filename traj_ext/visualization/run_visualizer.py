@@ -11,7 +11,12 @@ import os
 import subprocess
 import math;
 import sys
+import time
 import json
+
+import sys
+import os.path as osp
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 
 from traj_ext.postprocess_track import trajutil
 from traj_ext.postprocess_track.trajectory import Trajectory
@@ -31,6 +36,15 @@ from traj_ext.utils import det_zone
 from traj_ext.utils import mathutil
 
 from traj_ext.tracker import EKF_utils
+
+import logging
+import os.path as osp
+import sys
+from termcolor import colored
+from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
+from configs.workspace import WorkSpace
+
+logger = logging.getLogger(__name__)
 
 
 def main(args_input):
@@ -400,8 +414,20 @@ def run_visualize_traj(config):
 
 
 if __name__ == '__main__':
+    time_beg = time.time()
+    this_filename = osp.basename(__file__)
+    setup_log(this_filename)
+
+    ws = WorkSpace()
+    save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
+    if not osp.exists(save_dir):
+        os.makedirs(save_dir)
 
     try:
         main(sys.argv[1:])
     except KeyboardInterrupt:
         print('\nCancelled by user. Bye!')
+
+    time_end = time.time()
+    logger.warning(f'{this_filename} elapsed {time_end - time_beg} seconds')
+    print(colored(f'{this_filename} elapsed {time_end - time_beg} seconds', 'yellow'))

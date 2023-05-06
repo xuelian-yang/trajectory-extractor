@@ -126,7 +126,11 @@ class DetZoneFNED(object):
             contour = self.pt_det_zone_FNED.astype(int);
             contour = contour[:,0:2]
 
-            pt = (pt_FNED[0], pt_FNED[1]);
+            # print(f'pt_FNED: {type(pt_FNED)} {pt_FNED.dtype} {pt_FNED.shape}')
+
+            pt = (pt_FNED[0][0], pt_FNED[1][0]);
+            # print(f'pt: {type(pt)} {pt}')
+            # print(f'contour: {type(contour)}')
             res = cv2.pointPolygonTest(contour, pt, False)
             if (res < 1):
                 in_zone = False;

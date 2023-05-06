@@ -22,10 +22,26 @@ import argparse
 from shutil import copyfile
 import json
 
+import logging
+import os.path as osp
+import sys
+from termcolor import colored
+import time
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../../..')))
+
+from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
+from configs.workspace import WorkSpace
+
+logger = logging.getLogger(__name__)
+
 # Root directory of the project
 FILE_PATH = os.path.abspath(os.path.dirname(__file__));
 # ROOT_DIR =  os.path.abspath(os.path.join(FILE_PATH,'../../'));
 # sys.path.append(ROOT_DIR);
+
+import sys
+import os.path as osp
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../../..')))
 
 from traj_ext.object_det.mask_rcnn import detect_utils
 from traj_ext.utils import cfgutil
@@ -294,8 +310,15 @@ def run_detections_csv(config):
                     break;
 
 if __name__ == '__main__':
+    time_beg = time.time()
+    this_filename = osp.basename(__file__)
+    setup_log(this_filename)
 
     try:
         main(sys.argv[1:])
     except KeyboardInterrupt:
         print('\nCancelled by user. Bye!')
+
+    time_end = time.time()
+    logger.warning(f'{this_filename} elapsed {time_end - time_beg} seconds')
+    print(colored(f'{this_filename} elapsed {time_end - time_beg} seconds', 'yellow'))

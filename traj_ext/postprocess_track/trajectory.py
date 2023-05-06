@@ -599,11 +599,13 @@ class Trajectory(object):
                     # Add Velocity annotations to the track:
                     if velocity_label:
                         v = np.sqrt(traj_point.vx*traj_point.vx + traj_point.vy*traj_point.vy);
-                        text = "id:%i v:%.2fm/s" % (self.get_id(), v);
+                        # text = "id:%i v:%.2fm/s" % (self.get_id(), v);
+                        text = f'id:{self.get_id()} v:{v:.2f}m/s'
 
                     else:
                         # Add ID annotations to the track:
-                        text = "id:%i" % (self.get_id());
+                        # text = "id:%i" % (self.get_id());
+                        text = f'id:{self.get_id()}'
 
                     if not (custom_text is None):
                         text = custom_text;

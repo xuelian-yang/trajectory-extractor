@@ -14,6 +14,16 @@ import os
 import csv
 import argparse
 
+import logging
+import os.path as osp
+import sys
+from termcolor import colored
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
+from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
+from configs.workspace import WorkSpace
+
+logger = logging.getLogger(__name__)
+
 def main():
 
     ##########################################################
@@ -105,7 +115,7 @@ def main():
 
         # if save:
 
-        if frame_number%args.skip == 0:
+        if frame_number%args.skip == 0 and frame is not None:
             cv2.imwrite( output_path_img + '/' + name_image, frame );
             print('Frame Number: {} {}'.format(frame_number, name_image))
 
@@ -118,8 +128,20 @@ def main():
 
 
 if __name__ == '__main__':
+    time_beg = time.time()
+    this_filename = osp.basename(__file__)
+    setup_log(this_filename)
+
+    ws = WorkSpace()
+    save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
+    if not osp.exists(save_dir):
+        os.makedirs(save_dir)
 
     try:
         main()
     except KeyboardInterrupt:
         print('\nCancelled by user. Bye!')
+
+    time_end = time.time()
+    logger.warning(f'{this_filename} elapsed {time_end - time_beg} seconds')
+    print(colored(f'{this_filename} elapsed {time_end - time_beg} seconds', 'yellow'))
