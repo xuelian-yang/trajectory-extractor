@@ -6,6 +6,7 @@
 # @Github:
 
 import os
+import os.path as osp
 import sys
 
 import random
@@ -244,6 +245,9 @@ class TrackMerge(object):
                         break;
 
                     image_name = list_img_file[frame_index];
+                    if osp.getsize(os.path.join(img_folder_path, image_name)) == 0:
+                        print(f'  -> ignore {image_name}')
+                        continue
                     frame = cv2.imread(os.path.join(img_folder_path, image_name));
 
                     ok, bbox = tracker.update(frame)

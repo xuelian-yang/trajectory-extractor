@@ -230,6 +230,9 @@ def run_detections_csv(config):
         print('Detection for image {}'.format(file_name));
 
         # Open Image
+        if osp.getsize(os.path.join(image_dir, file_name)) == 0:
+            print(f'  -> ignore {file_name}')
+            continue
         image = skimage.io.imread(os.path.join(image_dir, file_name))
 
         # Reshape image to have to be dim = 3  - Sometimes images have alpha as 4th dim
