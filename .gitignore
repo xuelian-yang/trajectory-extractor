@@ -160,6 +160,7 @@ temp/
 
 # test_dataset/
 *.csv
+*.jpg
 
 
 
