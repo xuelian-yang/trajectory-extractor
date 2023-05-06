@@ -3,14 +3,15 @@
 # 目录
 
 - [目录](#目录)
-- [conda env](#conda-env)
+- [conda env @ ubuntu](#conda-env--ubuntu)
+  - [conda env @ windows 10](#conda-env--windows-10)
 - [生成 demo](#生成-demo)
   - [执行步骤](#执行步骤)
     - [遇到的问题](#遇到的问题)
 
 <!-- ========= ========= =========  ========= ========= ========= -->
 
-# conda env
+# conda env @ ubuntu
 
 ```bash
 conda create -n trajectory-extrator --clone dev
@@ -39,6 +40,18 @@ echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/:$CUDNN_PATH/lib
 #   Verify the CPU setup:
 python -c "import tensorflow as tf; print(tf.reduce_sum(tf.random.normal([1000, 1000])))"
 #   Verify the GPU setup:
+python -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+```
+
+## conda env @ windows 10
+
+```bash
+# https://tensorflow.google.cn/install/pip#windows-native
+conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0
+
+# Anything above 2.10 is not supported on the GPU on Windows Native
+python -m pip install "tensorflow<2.11"
+# Verify install:
 python -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
 ```
 
@@ -89,6 +102,29 @@ python traj_ext/visualization/run_visualizer.py
 - [Object Detection Using Mask R-CNN with TensorFlow 2.0 and Keras](https://blog.paperspace.com/mask-r-cnn-tensorflow-2-0-keras/)
 
 - [ValueError: Tried to convert 'shape' to a tensor and failed. Error: None values not supported. #1070](https://github.com/matterport/Mask_RCNN/issues/1070)
+
+- [CondaHTTPError: HTTP 000 CONNECTION](https://zhuanlan.zhihu.com/p/260034241)
+
+  ```bash
+  # Windows 10 下为安装 tensorflow-gpu 运行 conda install -c conda-forge cudatoolkit=11.6.0 报错
+  #   -> 关闭 clash
+  #   -> 修改 C:\Users\Username\.condarc
+  #      https:// -> http://
+  #      ssl_verify: false
+  ```
+
+```bash
+channels:
+  - http://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+  - http://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+  - http://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/msys2/
+  - http://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/
+  - http://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+  - http://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/fastai/
+  - http://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
+show_channel_urls: true
+ssl_verify: false
+```
 
 <!-- ========= ========= =========  ========= ========= ========= -->
 
