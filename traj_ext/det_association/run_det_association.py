@@ -253,6 +253,10 @@ def run_det_association(config):
         csv_name = image_name.split('.')[0] + '_det.csv';
         csv_path = os.path.join(config.det_dir, csv_name);
 
+        if not os.path.exists(csv_path):
+            logger.warning(f'skip {csv_path}')
+            continue
+
         # Read detections
         det_object_list = DetObject.from_csv(csv_path, expand_mask = True);
 

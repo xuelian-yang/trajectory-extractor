@@ -8,6 +8,8 @@
 - [生成 demo](#生成-demo)
   - [执行步骤](#执行步骤)
     - [遇到的问题](#遇到的问题)
+      - [@Linux](#linux)
+      - [@Win10](#win10)
 
 <!-- ========= ========= =========  ========= ========= ========= -->
 
@@ -93,6 +95,8 @@ python traj_ext/visualization/run_visualizer.py
 
 ### 遇到的问题
 
+#### @Linux
+
 - [AttributeError: module 'keras.engine' has no attribute 'Layer'](https://stackoverflow.com/a/71260250)
 
   ```bash
@@ -102,6 +106,8 @@ python traj_ext/visualization/run_visualizer.py
 - [Object Detection Using Mask R-CNN with TensorFlow 2.0 and Keras](https://blog.paperspace.com/mask-r-cnn-tensorflow-2-0-keras/)
 
 - [ValueError: Tried to convert 'shape' to a tensor and failed. Error: None values not supported. #1070](https://github.com/matterport/Mask_RCNN/issues/1070)
+
+#### @Win10
 
 - [CondaHTTPError: HTTP 000 CONNECTION](https://zhuanlan.zhihu.com/p/260034241)
 
@@ -137,6 +143,16 @@ res = cv2.pointPolygonTest(contour, pt, False)
 ==>
 res = cv2.pointPolygonTest(np.array(contour, np.float32), pt, False)
 ```
+
+- [AttributeError: module 'cv2' has no attribute 'TrackerCSRT_create'](https://blog.csdn.net/qq_18502653/article/details/98450073)
+
+  ```bash
+  # 需要安装 opencv-contrib-python
+  #  实际已安装
+  #     opencv-contrib-python  4.7.0.72
+  #     opencv-python          4.7.0.72
+  # Win10 与 ubuntu20.04 下安装的版本都一样，但仅有 Win10 报错.
+  ```
 
 <!-- ========= ========= =========  ========= ========= ========= -->
 
