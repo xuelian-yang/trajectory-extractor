@@ -124,19 +124,15 @@ class DetZoneFNED(object):
                 in_zone = True;
                 return in_zone;
 
-
             # Detection Zone from yml
             contour = self.pt_det_zone_FNED.astype(int);
             contour = contour[:,0:2]
 
-            # print(f'pt_FNED: {type(pt_FNED)} {pt_FNED.dtype} {pt_FNED.shape} {pt_FNED}')
-
             pt = (pt_FNED[0][0], pt_FNED[1][0]);
             if isWindows:
-                pt = (int(pt_FNED[0][0]), int(pt_FNED[1][0]))
-            # print(f'pt: {type(pt)} {pt}')
-            # print(f'contour: {type(contour)} {contour.dtype} {contour.shape} {contour}')
-            res = cv2.pointPolygonTest(contour, pt, False)
+                res = cv2.pointPolygonTest(np.array(contour, np.float32), pt, False)
+            else:
+                res = cv2.pointPolygonTest(contour, pt, False)
             if (res < 1):
                 in_zone = False;
 
