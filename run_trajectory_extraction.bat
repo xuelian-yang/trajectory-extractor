@@ -85,6 +85,8 @@ set TRAJ_INSPECT_PEDESTRIANS=%TRAJ_INSPECT_PEDESTRIANS_DIR%/%NAME%_traj.csv
 :: ##################################################################
 
 set VIDEO_PATH=%SOURCE_FOLDER%/%VIDEO_NAME%
+
+goto skip_comments
 python traj_ext/object_det/run_saveimages.py %VIDEO_PATH% --skip 3
 
 call :text_warn %OUTPUT_DIR%
@@ -112,7 +114,7 @@ python traj_ext/det_association/run_det_association.py ^
             -mode %MODE_VEHICLES% ^
             -no_save_images
 
-
+:skip_comments
 :: # Process
 python traj_ext/postprocess_track/run_postprocess.py ^
             -image_dir %IMG_DIR% ^

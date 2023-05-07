@@ -126,6 +126,18 @@ show_channel_urls: true
 ssl_verify: false
 ```
 
+- [res = cv2.pointPolygonTest(contour, pt, False)](https://blog.csdn.net/HayPinF/article/details/118000913)
+
+```bash
+    res = cv2.pointPolygonTest(contour, pt, False)
+
+cv2.error: OpenCV(4.7.0) D:\a\opencv-python\opencv-python\opencv\modules\imgproc\src\geometry.cpp:103: error: (-215:Assertion failed) total >= 0 && (depth == CV_32S || depth == CV_32F) in function 'cv::pointPolygonTest'
+
+res = cv2.pointPolygonTest(contour, pt, False)
+==>
+res = cv2.pointPolygonTest(np.array(contour, np.float32), pt, False)
+```
+
 <!-- ========= ========= =========  ========= ========= ========= -->
 
 <!--
