@@ -83,18 +83,9 @@ set TRAJ_INSPECT_PEDESTRIANS=%TRAJ_INSPECT_PEDESTRIANS_DIR%/%NAME%_traj.csv
 :: ##################################################################
 :: # EXTRACTING FRAMES FROM VIDEO
 :: ##################################################################
-
 set VIDEO_PATH=%SOURCE_FOLDER%/%VIDEO_NAME%
-
-:: goto skip_comments
 python traj_ext/object_det/run_saveimages.py %VIDEO_PATH% --skip 3
 
-call :text_warn %OUTPUT_DIR%
-call :text_warn %DET_DIR%
-
-:: goto :EOF
-
-goto :skip_det
 
 :: ####################################################################
 :: # OBJECT DETECTION
@@ -105,14 +96,10 @@ python traj_ext/object_det/mask_rcnn/run_detections_csv.py ^
         -crop_x1y1x2y2 %CROP_X1% %CROP_Y1% %CROP_X2% %CROP_Y2% ^
         -no_save_images
 
-:skip_det
 
 :: ####################################################################
 :: # VEHICLES
 :: ####################################################################
-
-
-
 :: # Det association
 python traj_ext/det_association/run_det_association.py ^
             -image_dir %IMG_DIR% ^
@@ -123,7 +110,6 @@ python traj_ext/det_association/run_det_association.py ^
             -mode %MODE_VEHICLES% ^
             -no_save_images
 
-goto :EOF
 
 :: # Process
 python traj_ext/postprocess_track/run_postprocess.py ^
@@ -142,8 +128,6 @@ python traj_ext/postprocess_track/run_postprocess.py ^
             -date %DATE% ^
             -start_time %START_TIME% ^
             -no_save_images
-
-
 
 python traj_ext/visualization/run_inspect_traj.py ^
             -traj %TRAJ_VEHICLES% ^
@@ -164,16 +148,10 @@ python traj_ext/visualization/run_inspect_traj.py ^
             -start_time %START_TIME% ^
             -export
 
-:skip_comments
-
 
 :: ###################################################################
 :: # PEDESTRIAN
 :: ###################################################################
-
-call :text_warn %OUTPUT_VEHICLES_DIR%
-call :text_warn %OUTPUT_PEDESTRIANS_DIR%
-
 :: # Det association
 python traj_ext/det_association/run_det_association.py ^
             -image_dir %IMG_DIR% ^
@@ -183,8 +161,6 @@ python traj_ext/det_association/run_det_association.py ^
             -det_zone_im %SOURCE_FOLDER%/%DET_ZONE_IM_PEDESTRIANS% ^
             -mode %MODE_PEDESTRIANS% ^
             -no_save_images
-
-:: goto :EOF
 
 :: # Process
 python traj_ext/postprocess_track/run_postprocess.py ^
@@ -223,6 +199,21 @@ python traj_ext/visualization/run_inspect_traj.py ^
             -date %DATE% ^
             -start_time %START_TIME% ^
             -export
+
+
+:: ###################################################################
+:: # VISUALIZATION
+:: ###################################################################
+python traj_ext/visualization/run_visualizer.py ^
+            -traj %TRAJ_INSPECT_VEHICLES% ^
+            -traj_person %TRAJ_INSPECT_PEDESTRIANS% ^
+            -image_dir %IMG_DIR% ^
+            -camera_street %SOURCE_FOLDER%/%CAMERA_STREET% ^
+            -camera_sat  %SOURCE_FOLDER%/%CAMERA_SAT% ^
+            -camera_sat_img %SOURCE_FOLDER%/%CAMERA_SAT_IMG% ^
+            -det_zone_fned %SOURCE_FOLDER%/%DET_ZONE_FNED_VEHICLES% ^
+            -hd_map %SOURCE_FOLDER%/%HD_MAP% ^
+            -output_dir %OUTPUT_DIR%
 
 :: =============================================================================
 
