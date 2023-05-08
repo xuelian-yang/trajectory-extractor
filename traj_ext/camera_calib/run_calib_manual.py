@@ -17,10 +17,19 @@
 
 #!/usr/bin/env python
 
+"""
+cd traj_ext/camera_calib/
+python run_calib_manual.py -init
+python run_calib_manual.py ^
+  -calib_points E:/Github/trajectory-extractor/temp/calib_feature_parser/feature_points_10.10.145.231.json_camera_calib_manual_latlon.csv ^
+  -image E:/Github/trajectory-extractor/test_alaco/hdmap_calib/10.10.145.231.png
+"""
+
 import cv2
 import numpy as np
 import sys
 import os
+import os.path as osp
 import scipy.optimize as opt
 import yaml
 import argparse
@@ -28,6 +37,8 @@ import configparser
 import csv
 import shutil
 
+
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.tracker.cameramodel import CameraModel
 
 from traj_ext.camera_calib import calib_utils

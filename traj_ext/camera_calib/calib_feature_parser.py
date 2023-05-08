@@ -7,6 +7,10 @@ conda activate traj
 cd E:\Github\trajectory-extractor
 
 python traj_ext/camera_calib/calib_feature_parser.py
+
+python run_calib_stereo.py
+python run_detection_zone.py
+python run_show_calib.py
 """
 
 import copy
@@ -143,12 +147,20 @@ def gen_pair(save_dir):
     orig_name = 'cross_e_01'
     orig_latlon, orig_desc = data_qgis.get_latlon_by_name(orig_name, True)
 
+    # 参考 traj_ext/camera_calib/calib_file/brest/brest_area1_street_hd_map.csv 格式
     with open(osp.join(save_dir, labelme_file + '_hd_map.csv'), 'wt') as f_ou:
         f_ou.write('point_type,point_id,x_ned,y_ned,latitude,longitude,origin_latitude,origin_longitude\n')
         for idx, (k, v) in enumerate(labelme_points.items()):
             latlon, desc = data_qgis.get_latlon_by_name(k, True)
             d_print_y(f'{idx:2d} {k:20s} {v} {latlon} {desc}')
             f_ou.write(f'100,{idx},{v[0]},{v[1]},{latlon[0]},{latlon[1]},{orig_latlon[0]},{orig_latlon[1]}\n')
+
+    # 参考 python run_calib_manual.py -init 生成的 camera_calib_manual_latlon.csv 格式
+    with open(osp.join(save_dir, labelme_file + '_camera_calib_manual_latlon.csv'), 'wt') as f_ou:
+        f_ou.write('pixel_x,pixel_y,lat_deg,lon_deg,origin_lat_deg,origin_lon_deg\n')
+        for k, v in labelme_points.items():
+            latlon, desc = data_qgis.get_latlon_by_name(k, True)
+            f_ou.write(f'{int(v[0])},{int(v[1])},{latlon[0]},{latlon[1]},{orig_latlon[0]},{orig_latlon[1]}\n')
 
 
 if __name__ == "__main__":
