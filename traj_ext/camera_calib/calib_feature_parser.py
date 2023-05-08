@@ -91,6 +91,7 @@ class DataQGis:
 
         self.has_data = False
         self.geometry_points = None
+        self.feature_names = None
 
         self.check_data()
         self.parse_data()
@@ -100,19 +101,34 @@ class DataQGis:
             raise ValueError(f'file not exist: {self.csv_path}')
 
     def parse_data(self):
-        """读取经纬度坐标及名称."""
+        """读取经纬度坐标及名称.
+        latitude: 纬度
+        longitude: 经度
+        """
         df = pd.read_csv(self.csv_path, encoding='gb2312')
         self.geometry_points = dict()
         for ind in df.index:
             self.has_data = True
-            logger.debug(f"{df['name'][ind]} {df['X'][ind]} {df['Y'][ind]}")
-            self.geometry_points[df['name'][ind]] = [df['X'][ind], df['Y'][ind]]
+            logger.debug(f"{df['name'][ind]} {df['Y'][ind]} {df['X'][ind]}")
+            # trajectory-extractor 格式为 (纬度, 经度)
+            self.geometry_points[df['name'][ind]] = ([df['Y'][ind], df['X'][ind]], df['desc'][ind])
+        self.feature_names = list(self.geometry_points.keys())
 
     def get_points(self):
         return self.geometry_points
 
+    def get_latlon_by_name(self, feat_name, ret_desc=False):
+        assert feat_name in self.feature_names
+        latlon, feat_desc = self.geometry_points[feat_name]
+        if ret_desc:
+            return latlon, feat_desc
+        return latlon
+
 
 def gen_pair(save_dir):
+    """
+    将 labelme 标注的图像特征点坐标 与 QGIS 导出的经纬度坐标进行组合, 生成 trajectory-extractor 格式的标定输入.
+    """
     input_dir = osp.abspath(osp.join(osp.dirname(__file__), '../../test_alaco/hdmap_calib'))
     if not osp.exists(input_dir):
         raise ValueError(f'path not exist: {input_dir}')
@@ -123,14 +139,16 @@ def gen_pair(save_dir):
     data_qgis = DataQGis(osp.join(input_dir, qgis_file), save_dir)
 
     labelme_points = data_labelme.get_points()
-    qgis_points = data_qgis.get_points()
-    points_names = list(qgis_points.keys())
+    # 中心点
+    orig_name = 'cross_e_01'
+    orig_latlon, orig_desc = data_qgis.get_latlon_by_name(orig_name, True)
 
-    for k, v in labelme_points.items():
-        if k not in points_names:
-            d_print_r(f'missing lat/lon of {k}')
-            continue
-        print(f'{k} {v} {qgis_points[k]}')
+    with open(osp.join(save_dir, labelme_file + '_hd_map.csv'), 'wt') as f_ou:
+        f_ou.write('point_type,point_id,x_ned,y_ned,latitude,longitude,origin_latitude,origin_longitude\n')
+        for idx, (k, v) in enumerate(labelme_points.items()):
+            latlon, desc = data_qgis.get_latlon_by_name(k, True)
+            d_print_y(f'{idx:2d} {k:20s} {v} {latlon} {desc}')
+            f_ou.write(f'100,{idx},{v[0]},{v[1]},{latlon[0]},{latlon[1]},{orig_latlon[0]},{orig_latlon[1]}\n')
 
 
 if __name__ == "__main__":
