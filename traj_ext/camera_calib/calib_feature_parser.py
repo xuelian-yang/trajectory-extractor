@@ -34,8 +34,10 @@ logger = logging.getLogger(__name__)
 
 
 class DataLabelme:
-    def __init__(self, json_path):
+    """Labelme 标注的特征点坐标."""
+    def __init__(self, json_path, save_dir):
         self.json_path = json_path
+        self.save_dir = save_dir
 
         self.has_data = False
         self.im_path = None
@@ -46,13 +48,14 @@ class DataLabelme:
         self.check_data()
         self.parse_data()
 
-        self.debug()
+        # self.debug()
 
     def check_data(self):
         if not osp.exists(self.json_path):
             raise ValueError(f'file not exist: {self.json_path}')
 
     def parse_data(self):
+        """从 json 文件读取点坐标及名称."""
         json_dict = json.load(open(self.json_path, 'r'))
         self.im_path = osp.join(osp.dirname(self.json_path), json_dict['imagePath'])
         self.im_w = json_dict['imageWidth']
@@ -81,8 +84,14 @@ class DataLabelme:
         return self.geometry_points
 
 class DataQGis:
-    def __init__(self, csv_path):
+    """QGIS 标注的特征点经纬度坐标."""
+    def __init__(self, csv_path, save_dir):
         self.csv_path = csv_path
+        self.save_dir = save_dir
+
+        self.has_data = False
+        self.geometry_points = None
+
         self.check_data()
         self.parse_data()
 
@@ -91,13 +100,16 @@ class DataQGis:
             raise ValueError(f'file not exist: {self.csv_path}')
 
     def parse_data(self):
-        reader = csv.DictReader(self.csv_path)
+        """读取经纬度坐标及名称."""
+        df = pd.read_csv(self.csv_path, encoding='gb2312')
+        self.geometry_points = dict()
+        for ind in df.index:
+            self.has_data = True
+            logger.debug(f"{df['name'][ind]} {df['X'][ind]} {df['Y'][ind]}")
+            self.geometry_points[df['name'][ind]] = [df['X'][ind], df['Y'][ind]]
 
-        for row in reader:
-            d_print_y(f'row: {type(row)} {row}')
-        form = pd.read_csv(self.csv_path, encoding='gb2312')
-        print(form)
-        pass
+    def get_points(self):
+        return self.geometry_points
 
 
 def gen_pair(save_dir):
@@ -107,9 +119,18 @@ def gen_pair(save_dir):
     labelme_file = 'feature_points_10.10.145.231.json'
     qgis_file = 'point_label_latlog.csv'
 
-    data_labelme = DataLabelme(osp.join(input_dir, labelme_file))
-    data_qgis = DataQGis(osp.join(input_dir, qgis_file))
-    pass
+    data_labelme = DataLabelme(osp.join(input_dir, labelme_file), save_dir)
+    data_qgis = DataQGis(osp.join(input_dir, qgis_file), save_dir)
+
+    labelme_points = data_labelme.get_points()
+    qgis_points = data_qgis.get_points()
+    points_names = list(qgis_points.keys())
+
+    for k, v in labelme_points.items():
+        if k not in points_names:
+            d_print_r(f'missing lat/lon of {k}')
+            continue
+        print(f'{k} {v} {qgis_points[k]}')
 
 
 if __name__ == "__main__":
