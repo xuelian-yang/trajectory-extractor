@@ -268,14 +268,16 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
 
         # Save the camera model
         cam_file_name = image_path.split('/')[-1];
-        cam_file_name = cam_file_name.split('.')[0] + '_cfg.yml';
+        # cam_file_name = cam_file_name.split('.')[0] + '_cfg.yml';
+        cam_file_name = osp.splitext(cam_file_name)[0] + '_cfg.yml'
         output_path = os.path.join(output_folder, cam_file_name);
 
         cam_model.save_to_yml(output_path);
 
         # Save the camera model
         im_calib_file_name = image_path.split('/')[-1];
-        im_calib_file_name = cam_file_name.split('.')[0] + '_calib.png';
+        # im_calib_file_name = cam_file_name.split('.')[0] + '_calib.png';
+        im_calib_file_name = osp.splitext(cam_file_name)[0] + '_cfg_calib.png'
 
         im_calib_path = os.path.join(output_folder, im_calib_file_name);
         cv2.imwrite(im_calib_path, im );

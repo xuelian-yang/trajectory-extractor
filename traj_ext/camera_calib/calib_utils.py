@@ -169,12 +169,12 @@ def convert_latlon_F(latlon_origin, latlon_points):
     return model_points_F;
 
 def display_keypoints(image, image_points_reproj, image_points):
-
+    # 红色为原始点
     for i in range(0, image_points.shape[0]):
         cv2.circle(image, (int(image_points[i][0]), int(image_points[i][1])), 6, (0,0, 255), -1)
 
-    # image_points_reproj
+    # image_points_reproj 黄色为重投影点
     for i in range(0, image_points_reproj.shape[0]):
-        cv2.circle(image, (int(image_points_reproj[i][0]), int(image_points_reproj[i][1])), 6, (0,255, 255), -1)
+        cv2.circle(image, (int(image_points_reproj[i][0]), int(image_points_reproj[i][1])), 6, (0,255, 255), 3)
 
-    return image;
+    return image

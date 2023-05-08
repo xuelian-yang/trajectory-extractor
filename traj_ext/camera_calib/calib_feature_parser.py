@@ -6,11 +6,12 @@
 conda activate traj
 cd E:\Github\trajectory-extractor
 
-python traj_ext/camera_calib/calib_feature_parser.py
+python traj_ext/camera_calib/calib_feature_parser.py --labelme_json feature_points_10.10.145.232.json
 
 python run_calib_stereo.py
 """
 
+import argparse
 import copy
 import csv
 import cv2
@@ -24,16 +25,18 @@ import numpy as np
 import os
 import os.path as osp
 import pandas as pd
+import platform
 import sys
 from termcolor import colored
 import time
+
 
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
 from configs.workspace import WorkSpace
 
 logger = logging.getLogger(__name__)
-
+isWindows = (platform.system() == "Windows")
 
 class DataLabelme:
     """Labelme 标注的特征点坐标."""
@@ -85,6 +88,10 @@ class DataLabelme:
     def get_points(self):
         return self.geometry_points
 
+    def get_img_path(self):
+        return self.im_path
+
+
 class DataQGis:
     """QGIS 标注的特征点经纬度坐标."""
     def __init__(self, csv_path, save_dir):
@@ -127,14 +134,15 @@ class DataQGis:
         return latlon
 
 
-def gen_pair(save_dir):
+def gen_pair(save_dir, labelme_json):
     """
     将 labelme 标注的图像特征点坐标 与 QGIS 导出的经纬度坐标进行组合, 生成 trajectory-extractor 格式的标定输入.
     """
     input_dir = osp.abspath(osp.join(osp.dirname(__file__), '../../test_alaco/hdmap_calib'))
     if not osp.exists(input_dir):
         raise ValueError(f'path not exist: {input_dir}')
-    labelme_file = 'feature_points_10.10.145.231.json'
+    # labelme_file = 'feature_points_10.10.145.231.json'
+    labelme_file = labelme_json
     qgis_file = 'point_label_latlog.csv'
 
     data_labelme = DataLabelme(osp.join(input_dir, labelme_file), save_dir)
@@ -154,20 +162,38 @@ def gen_pair(save_dir):
             f_ou.write(f'100,{idx},{v[0]},{v[1]},{latlon[0]},{latlon[1]},{orig_latlon[0]},{orig_latlon[1]}\n')
 
     # 参考 python run_calib_manual.py -init 生成的 camera_calib_manual_latlon.csv 格式
-    with open(osp.join(save_dir, labelme_file + '_camera_calib_manual_latlon.csv'), 'wt') as f_ou:
+    path_manual_csv = osp.abspath(osp.join(save_dir, labelme_file + '_camera_calib_manual_latlon.csv'))
+    with open(path_manual_csv, 'wt') as f_ou:
         f_ou.write('pixel_x,pixel_y,lat_deg,lon_deg,origin_lat_deg,origin_lon_deg\n')
         for k, v in labelme_points.items():
             latlon, desc = data_qgis.get_latlon_by_name(k, True)
             f_ou.write(f'{int(v[0])},{int(v[1])},{latlon[0]},{latlon[1]},{orig_latlon[0]},{orig_latlon[1]}\n')
 
+    # run_calib_manual.py 脚本
+    if isWindows:
+        d_print_r(f'\ncd traj_ext/camera_calib/\n'
+                  f'python run_calib_manual.py ^\n'
+                  f'  -calib_points {path_manual_csv} ^\n'
+                  f'  -image {data_labelme.get_img_path()}\n')
+    else:
+        d_print_r(f'\ncd traj_ext/camera_calib/\n'
+                  f'python run_calib_manual.py \\\n'
+                  f'  -calib_points {path_manual_csv} \\\n'
+                  f'  -image {data_labelme.get_img_path()}\n')
+
 
 def main():
+    argparser = argparse.ArgumentParser(
+        description='generate feature point files for calibration')
+    argparser.add_argument('--labelme_json', default='feature_points_10.10.145.231.json')
+    args = argparser.parse_args()
+
     ws = WorkSpace()
     save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
     if not osp.exists(save_dir):
         os.makedirs(save_dir)
 
-    gen_pair(save_dir)
+    gen_pair(save_dir, args.labelme_json)
 
 
 if __name__ == "__main__":
