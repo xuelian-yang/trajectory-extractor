@@ -6,21 +6,31 @@
 cd traj_ext/camera_calib/
 
 set home_path=E:/Github/trajectory-extractor/traj_ext/camera_calib/calib_file/brest
-
 python run_detection_zone.py ^
   -camera_street %home_path%/brest_area1_street_cfg.yml ^
   -image_street %home_path%/brest_area1_street.jpg ^
   -camera_sat %home_path%/brest_area1_sat_cfg.yml ^
   -image_sat %home_path%/brest_area1_sat.png
+
+
+set home_path=E:/Github/trajectory-extractor/test_alaco/hdmap_calib
+python run_detection_zone.py ^
+  -camera_street %home_path%/10.10.145.231_cfg.yml ^
+  -image_street %home_path%/10.10.145.231.png ^
+  -camera_sat %home_path%/hdmap_0_cfg.yml ^
+  -image_sat %home_path%/hdmap_0.png
 """
 
 # import the necessary packages
 import argparse
 import cv2
+import logging
 import sys
 import os
 import os.path as osp
+import platform
 import numpy as np
+from termcolor import colored
 import time
 import copy
 from scipy.optimize import linear_sum_assignment
@@ -36,7 +46,27 @@ from traj_ext.camera_calib import calib_utils
 from traj_ext.object_det import det_object
 from traj_ext.utils import det_zone
 
+from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
+from configs.workspace import WorkSpace
+
+logger = logging.getLogger(__name__)
+isWindows = (platform.system() == "Windows")
+isLinux = (platform.system() == "Linux")
+
+windows, win_w, win_h = [], 1920, 1080
+names = ["image_1", "image_2"]
+for win_name in names:
+    if win_name not in windows:
+        windows.append(win_name)
+        if isWindows:
+            cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL)
+        else:
+            cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
+        cv2.resizeWindow(str(win_name), win_w, win_h)
+
+
 def click(event, x, y, flags, param ):
+    # logger.info(f'click(..)')
 
     # if the left mouse button was clicked, record the starting
     # (x, y) coordinates and indicate that cropping is being
@@ -48,17 +78,16 @@ def click(event, x, y, flags, param ):
     cam_model_2 = param[3];
     image_2 = param[4];
 
-
     if event == cv2.EVENT_LBUTTONDOWN:
         pt_image = (x, y)
         pt_image_list.append(pt_image);
 
         draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list);
+    return
 
-    return;
 
 def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list):
-
+    logger.info(f'draw_image(..)')
 
     if not (cam_model_1 is None)  and  not (image_2 is None) and not (cam_model_2 is None):
         image_1_temp = copy.copy(image_1);
@@ -81,17 +110,13 @@ def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list):
             mask_1 = det_object.create_mask_image((image_1_temp.shape[0], image_1_temp.shape[1]), list_pt_im);
             det_object.draw_mask(image_1_temp, mask_1, (0,0,255));
 
-
             list_pt_im = cam_model_2.project_list_pt_F(pt_FNED_list_temp);
             mask_2 = det_object.create_mask_image((image_2_temp.shape[0], image_2_temp.shape[1]), list_pt_im);
             det_object.draw_mask(image_2_temp, mask_2, (0,0,255));
 
         cv2.imshow("image_2", image_2_temp)
         cv2.imshow("image_1", image_1_temp)
-
-
     else:
-
         image_1_temp = copy.copy(image_1);
 
         for index, pt_image in enumerate(pt_image_list):
@@ -107,9 +132,8 @@ def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list):
         cv2.imshow("image_1", image_1_temp)
 
 
-
 def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_path, image_sat_path, output_name):
-
+    logger.info(f'run_detection_zone(..)')
     # Print instructions
     print("Instruction:")
     print("    - Click on the image to define the detection zone")
@@ -148,7 +172,6 @@ def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_p
         print('\n[Error]: image_sat_path is not valid: {}'.format(image_sat_path));
         return;
 
-
     # Create windows
     cv2.namedWindow("image_1")
     if not (image_2 is None):
@@ -164,7 +187,6 @@ def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_p
     # keep looping until the 'q' key is pressed
     save_zone = False;
     while True:
-
         # display the image and wait for a keypress
         key = cv2.waitKey(1) & 0xFF
         # if key == ord("c"):
@@ -184,8 +206,7 @@ def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_p
     # Make sure there is enough point
     if not len(pt_image_list) > 2:
         print('[Error]: Not enough points to define the detection zone (3 points minimum): {}'.format(pt_image_list))
-        return;
-
+        return
 
     if not (cam_model_1 is None):
         model_points_FNED = np.array([]);
@@ -241,8 +262,9 @@ def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_p
     print("\nProgram Exit")
     print("############################################################\n")
 
-def main():
 
+def main():
+    logger.info(f'main()')
     # Print instructions
     print("############################################################")
     print("Camera Detection Zone")
@@ -278,9 +300,17 @@ def main():
     #Run camera calibration
     run_detection_zone(args.cam_model_street_path, args.image_street_path, args.cam_model_sat_path, args.image_sat_path, args.output_name);
 
+
 if __name__ == '__main__':
+    time_beg = time.time()
+    this_filename = osp.basename(__file__)
+    setup_log(this_filename)
 
     try:
         main()
     except KeyboardInterrupt:
         print('\nCancelled by user. Bye!')
+
+    time_end = time.time()
+    logger.warning(f'{this_filename} elapsed {time_end - time_beg} seconds')
+    print(colored(f'{this_filename} elapsed {time_end - time_beg} seconds', 'yellow'))

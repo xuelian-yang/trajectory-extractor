@@ -31,7 +31,6 @@ import sys
 from termcolor import colored
 import time
 
-
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
 from configs.workspace import WorkSpace
