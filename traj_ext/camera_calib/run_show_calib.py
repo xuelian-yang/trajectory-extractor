@@ -4,11 +4,16 @@
 cd traj_ext/camera_calib/
 
 set home_path=E:/Github/trajectory-extractor/traj_ext/camera_calib/calib_file/brest
-
 python run_show_calib.py ^
   --camera_calib %home_path%/brest_area1_street_cfg.yml ^
   --image %home_path%/brest_area1_street.jpg ^
   --detection_zone %home_path%/brest_area1_detection_zone.yml
+
+set home_path=E:/Github/trajectory-extractor/test_alaco/hdmap_calib
+python run_show_calib.py ^
+  --camera_calib %home_path%/10.10.145.231_cfg.yml ^
+  --image %home_path%/10.10.145.231.png ^
+  --detection_zone %home_path%/_detection_zone.yml
 """
 
 # import the necessary packages
@@ -17,6 +22,7 @@ import cv2
 import sys
 import os
 import os.path as osp
+import platform
 import numpy as np
 import time
 import copy
@@ -26,6 +32,20 @@ import configparser
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.tracker import cameramodel
 from traj_ext.utils import det_zone
+
+isWindows = (platform.system() == "Windows")
+
+windows, win_w, win_h = [], 1920, 1080
+names = ["image_1"]
+for win_name in names:
+    if win_name not in windows:
+        windows.append(win_name)
+        if isWindows:
+            cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL)
+        else:
+            cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
+        cv2.resizeWindow(str(win_name), win_w, win_h)
+
 
 def click(event, x, y, flags, param ):
 
@@ -43,8 +63,8 @@ def click(event, x, y, flags, param ):
         pt_image_list.append(pt_image);
 
         draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED);
+    return
 
-    return;
 
 def draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED = None):
 
@@ -75,7 +95,6 @@ def draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED = None):
         # Draw det zone:
         if not (det_zone_FNED is None):
             det_zone_FNED.display_on_image(image_1_temp, cam_model_1);
-
         cv2.imshow("image_1", image_1_temp)
 
 
@@ -163,6 +182,7 @@ def main():
 
     print("Program Exit\n")
     print("############################################################\n")
+
 
 if __name__ == '__main__':
 
