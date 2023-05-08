@@ -7,6 +7,7 @@ conda activate traj
 cd E:\Github\trajectory-extractor
 
 python traj_ext/camera_calib/calib_feature_parser.py --labelme_json feature_points_10.10.145.232.json
+python traj_ext/camera_calib/calib_feature_parser.py --labelme_json feature_points_hdmap_0.json
 
 python run_calib_stereo.py
 """
