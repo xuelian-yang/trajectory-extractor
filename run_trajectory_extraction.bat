@@ -200,6 +200,7 @@ python traj_ext/visualization/run_inspect_traj.py ^
             -start_time %START_TIME% ^
             -export
 
+goto :skip_visualization
 
 :: ###################################################################
 :: # VISUALIZATION
@@ -216,6 +217,8 @@ python traj_ext/visualization/run_visualizer.py ^
             -output_dir %OUTPUT_DIR%
 
 :: =============================================================================
+
+:skip_visualization
 
 :: 计时结束
 :: call timer.cmd Stop

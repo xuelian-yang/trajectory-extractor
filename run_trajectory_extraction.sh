@@ -187,7 +187,8 @@ python traj_ext/visualization/run_inspect_traj.py\
 # VISUALIZATION
 ###################################################################
 
-: '
+# : '
+
 python traj_ext/visualization/run_visualizer.py\
             -traj ${TRAJ_INSPECT_VEHICLES}\
             -traj_person ${TRAJ_INSPECT_PEDESTRIANS}\
@@ -197,8 +198,9 @@ python traj_ext/visualization/run_visualizer.py\
             -camera_sat_img ${SOURCE_FOLDER}/${CAMERA_SAT_IMG}\
             -det_zone_fned ${SOURCE_FOLDER}/${DET_ZONE_FNED_VEHICLES}\
             -hd_map ${SOURCE_FOLDER}/${HD_MAP}\
-            -output_dir ${OUTPUT_DIR}\
-'
+            -output_dir ${OUTPUT_DIR}
+
+# '
 
 function text_warn() {
   echo -e "\e[33m# $1\e[39m"
