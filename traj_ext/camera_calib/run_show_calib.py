@@ -3,7 +3,12 @@
 """
 cd traj_ext/camera_calib/
 
-python run_show_calib.py
+set home_path=E:/Github/trajectory-extractor/traj_ext/camera_calib/calib_file/brest
+
+python run_show_calib.py ^
+  --camera_calib %home_path%/brest_area1_street_cfg.yml ^
+  --image %home_path%/brest_area1_street.jpg ^
+  --detection_zone %home_path%/brest_area1_detection_zone.yml
 """
 
 # import the necessary packages
