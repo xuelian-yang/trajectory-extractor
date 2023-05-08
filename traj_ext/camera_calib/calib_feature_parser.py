@@ -9,8 +9,6 @@ cd E:\Github\trajectory-extractor
 python traj_ext/camera_calib/calib_feature_parser.py
 
 python run_calib_stereo.py
-python run_detection_zone.py
-python run_show_calib.py
 """
 
 import copy
@@ -163,17 +161,21 @@ def gen_pair(save_dir):
             f_ou.write(f'{int(v[0])},{int(v[1])},{latlon[0]},{latlon[1]},{orig_latlon[0]},{orig_latlon[1]}\n')
 
 
-if __name__ == "__main__":
-    time_beg = time.time()
-    this_filename = osp.basename(__file__)
-    setup_log(this_filename)
-
+def main():
     ws = WorkSpace()
     save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
     if not osp.exists(save_dir):
         os.makedirs(save_dir)
 
     gen_pair(save_dir)
+
+
+if __name__ == "__main__":
+    time_beg = time.time()
+    this_filename = osp.basename(__file__)
+    setup_log(this_filename)
+
+    main()
 
     time_end = time.time()
     logger.warning(f'{this_filename} elapsed {time_end - time_beg} seconds')

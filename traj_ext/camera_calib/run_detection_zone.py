@@ -1,24 +1,39 @@
+# -*- coding: utf-8 -*-
+
+"""
+手动设置检测区域.
+
+cd traj_ext/camera_calib/
+
+set home_path=E:/Github/trajectory-extractor/traj_ext/camera_calib/calib_file/brest
+
+python run_detection_zone.py ^
+  -camera_street %home_path%/brest_area1_street_cfg.yml ^
+  -image_street %home_path%/brest_area1_street.jpg ^
+  -camera_sat %home_path%/brest_area1_sat_cfg.yml ^
+  -image_sat %home_path%/brest_area1_sat.png
+"""
+
 # import the necessary packages
 import argparse
 import cv2
 import sys
 import os
+import os.path as osp
 import numpy as np
 import time
 import copy
 from scipy.optimize import linear_sum_assignment
 import configparser
 
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.tracker.cameramodel import CameraModel
 
 from traj_ext.utils import cfgutil
 from traj_ext.utils import mathutil
 
 from traj_ext.camera_calib import calib_utils
-
 from traj_ext.object_det import det_object
-
-
 from traj_ext.utils import det_zone
 
 def click(event, x, y, flags, param ):

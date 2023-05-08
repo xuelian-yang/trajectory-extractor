@@ -37,7 +37,6 @@ import configparser
 import csv
 import shutil
 
-
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.tracker.cameramodel import CameraModel
 

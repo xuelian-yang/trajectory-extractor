@@ -1,14 +1,24 @@
+# -*- coding: utf-8 -*-
+
+"""
+cd traj_ext/camera_calib/
+
+python run_show_calib.py
+"""
+
 # import the necessary packages
 import argparse
 import cv2
 import sys
 import os
+import os.path as osp
 import numpy as np
 import time
 import copy
 from scipy.optimize import linear_sum_assignment
 import configparser
 
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.tracker import cameramodel
 from traj_ext.utils import det_zone
 
