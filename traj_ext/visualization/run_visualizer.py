@@ -156,11 +156,15 @@ def run_visualize_traj(config):
     image_annoted_saving_dir = os.path.join(output_dir, 'img_annoted');
     image_hd_map_saving_dir = os.path.join(output_dir, 'img_hdmap');
     image_concat_saving_dir = os.path.join(output_dir, 'img_concat');
+    image_sat_saving_dir = os.path.join(output_dir, 'img_sat_annoted')
+    image_sat_concat_saving_dir = os.path.join(output_dir, 'img_sat_concat')
 
     os.makedirs(image_raw_saving_dir, exist_ok=True)
     os.makedirs(image_annoted_saving_dir, exist_ok=True)
     os.makedirs(image_hd_map_saving_dir, exist_ok=True)
     os.makedirs(image_concat_saving_dir, exist_ok=True)
+    os.makedirs(image_sat_saving_dir, exist_ok=True)
+    os.makedirs(image_sat_concat_saving_dir, exist_ok=True)
 
     # Save the cfg file with the output:
     try:
@@ -298,6 +302,8 @@ def run_visualize_traj(config):
                     # cv2.imshow('Sat View merged', image_sat_current)
                     show_image_without_large_window('Sat View merged', image_sat_current)
 
+                    image_sat_concat = EKF_utils.concatenate_images(image_current_traj, image_sat_current)
+
             if hd_map_available:
                 # Display traj
                 image_hdmap_current, _ = run_inspect_traj.display_traj_on_image(time_ms, cam_model_hdmap, image_hdmap, traj_list, det_zone_FNED_list = [det_zone_FNED], no_label = config.no_label, velocity_label=True);
@@ -312,7 +318,6 @@ def run_visualize_traj(config):
                 show_image_without_large_window('View: Camera and HD map', image_concat)
 
             if export_mode:
-
                 img_annoted_name = img_file_name.split('.')[0] + '_annotated.png';
                 print('Saving: frame_id: {} image: {}'.format(frame_index, img_annoted_name))
 
@@ -324,7 +329,6 @@ def run_visualize_traj(config):
                 cv2.imwrite(image_raw_path, image_current);
 
                 if hd_map_available:
-
                     img_hdmap_name = img_file_name.split('.')[0] + '_hdmap.png';
                     print('Saving: frame_id: {} image: {}'.format(frame_index, img_hdmap_name))
                     image_hdmap_path = os.path.join(image_hd_map_saving_dir, img_hdmap_name);
@@ -334,6 +338,15 @@ def run_visualize_traj(config):
                     print('Saving: frame_id: {} image: {}'.format(frame_index, img_concat_name))
                     image_concat_path = os.path.join(image_concat_saving_dir, img_concat_name);
                     cv2.imwrite(image_concat_path, image_concat);
+
+                if sat_view_available and sat_view_enable:
+                    img_sat_name = img_file_name.split('.')[0] + '_sat.png'
+                    image_sat_path = os.path.join(image_sat_saving_dir, img_sat_name)
+                    cv2.imwrite(image_sat_path, image_sat_current)
+
+                    img_sat_concat_name = img_file_name.split('.')[0] + '_sat_concat.png'
+                    image_sat_concat_path = os.path.join(image_sat_concat_saving_dir, img_sat_concat_name)
+                    cv2.imwrite(image_sat_concat_path, image_sat_concat)
 
         else:
             print('Not found: frame_id: {} image: {}'.format(frame_index, img_file_name));
