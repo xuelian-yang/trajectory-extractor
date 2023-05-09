@@ -89,8 +89,6 @@ goto :skip_for_debug
 
 python traj_ext/object_det/run_saveimages.py %VIDEO_PATH% --skip 3
 
-:skip_for_debug
-
 :: ####################################################################
 :: # OBJECT DETECTION
 :: ####################################################################
@@ -131,6 +129,92 @@ python traj_ext/postprocess_track/run_postprocess.py ^
             -date %DATE% ^
             -start_time %START_TIME% ^
             -no_save_images
+
+python traj_ext/visualization/run_inspect_traj.py ^
+            -traj %TRAJ_VEHICLES% ^
+            -image_dir %IMG_DIR% ^
+            -det_dir %DET_DIR% ^
+            -det_asso_dir %DET_ASSO_VEHICLES_DIR% ^
+            -track_merge %TRACK_MERGE_VEHICLES% ^
+            -camera_street %SOURCE_FOLDER%/%CAMERA_STREET% ^
+            -camera_sat  %SOURCE_FOLDER%/%CAMERA_SAT% ^
+            -camera_sat_img %SOURCE_FOLDER%/%CAMERA_SAT_IMG% ^
+            -det_zone_fned %SOURCE_FOLDER%/%DET_ZONE_FNED_VEHICLES% ^
+            -label_replace %LABEL_REPLACE_VEHICLES% ^
+            -output_dir %OUTPUT_VEHICLES_DIR% ^
+            -hd_map %SOURCE_FOLDER%/%HD_MAP% ^
+            -delta_ms %DELTA_MS% ^
+            -location_name %LOCATION_NAME% ^
+            -date %DATE% ^
+            -start_time %START_TIME% ^
+            -export
+
+:: ###################################################################
+:: # PEDESTRIAN
+:: ###################################################################
+:: # Det association
+python traj_ext/det_association/run_det_association.py ^
+            -image_dir %IMG_DIR% ^
+            -output_dir %OUTPUT_PEDESTRIANS_DIR% ^
+            -det_dir %DET_DIR% ^
+            -ignore_detection_area %SOURCE_FOLDER%/%IGNORE_AREA_PEDESTRIANS% ^
+            -det_zone_im %SOURCE_FOLDER%/%DET_ZONE_IM_PEDESTRIANS% ^
+            -mode %MODE_PEDESTRIANS% ^
+            -no_save_images
+
+:: # Process
+python traj_ext/postprocess_track/run_postprocess.py ^
+            -image_dir %IMG_DIR% ^
+            -output_dir %OUTPUT_PEDESTRIANS_DIR% ^
+            -det_dir %DET_DIR% ^
+            -det_asso_dir %DET_ASSO_PEDESTRIANS_DIR% ^
+            -track_merge %TRACK_MERGE_PEDESTRIANS% ^
+            -camera_street %SOURCE_FOLDER%/%CAMERA_STREET% ^
+            -camera_sat  %SOURCE_FOLDER%/%CAMERA_SAT% ^
+            -camera_sat_img %SOURCE_FOLDER%/%CAMERA_SAT_IMG% ^
+            -det_zone_fned %SOURCE_FOLDER%/%DET_ZONE_FNED_PEDESTRIANS% ^
+            -delta_ms %DELTA_MS% ^
+            -location_name %LOCATION_NAME% ^
+            -dynamic_model %DYNAMIC_MODEL_PEDESTRIANS% ^
+            -date %DATE% ^
+            -start_time %START_TIME% ^
+            -no_save_images
+
+
+python traj_ext/visualization/run_inspect_traj.py ^
+            -traj %TRAJ_PEDESTRIANS% ^
+            -image_dir %IMG_DIR% ^
+            -det_dir %DET_DIR% ^
+            -det_asso_dir %DET_ASSO_PEDESTRIANS_DIR% ^
+            -track_merge %TRACK_MERGE_PEDESTRIANS% ^
+            -camera_street %SOURCE_FOLDER%/%CAMERA_STREET% ^
+            -camera_sat  %SOURCE_FOLDER%/%CAMERA_SAT% ^
+            -camera_sat_img %SOURCE_FOLDER%/%CAMERA_SAT_IMG% ^
+            -det_zone_fned %SOURCE_FOLDER%/%DET_ZONE_FNED_PEDESTRIANS% ^
+            -label_replace %LABEL_REPLACE_PEDESTRIANS% ^
+            -output_dir %OUTPUT_PEDESTRIANS_DIR% ^
+            -hd_map %SOURCE_FOLDER%/%HD_MAP% ^
+            -delta_ms %DELTA_MS% ^
+            -location_name %LOCATION_NAME% ^
+            -date %DATE% ^
+            -start_time %START_TIME% ^
+            -export
+
+:skip_for_debug
+
+:: ###################################################################
+:: # VISUALIZATION
+:: ###################################################################
+python traj_ext/visualization/run_visualizer.py ^
+            -traj %TRAJ_INSPECT_VEHICLES% ^
+            -traj_person %TRAJ_INSPECT_PEDESTRIANS% ^
+            -image_dir %IMG_DIR% ^
+            -camera_street %SOURCE_FOLDER%/%CAMERA_STREET% ^
+            -camera_sat  %SOURCE_FOLDER%/%CAMERA_SAT% ^
+            -camera_sat_img %SOURCE_FOLDER%/%CAMERA_SAT_IMG% ^
+            -det_zone_fned %SOURCE_FOLDER%/%DET_ZONE_FNED_VEHICLES% ^
+            -hd_map %SOURCE_FOLDER%/%HD_MAP% ^
+            -output_dir %OUTPUT_DIR%
 
 :: =============================================================================
 :: 计时结束
