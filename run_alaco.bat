@@ -32,7 +32,8 @@ set CAMERA_STREET=10.10.145.232_cfg.yml
 set CAMERA_SAT=hdmap_0_cfg.yml
 set CAMERA_SAT_IMG=hdmap_0.png
 :: TODO: 需要生成高精地图
-set HD_MAP=brest_area1_street_hd_map.csv
+:: set HD_MAP=brest_area1_street_hd_map.csv
+set HD_MAP=""
 
 :: SET DETECTION AD IGNORE ZONES
 set DET_ZONE_IM_VEHICLES=10.10.145.232_detection_zone_im.yml

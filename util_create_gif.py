@@ -14,23 +14,12 @@ python util_create_gif.py ^
 """
 
 import argparse
-import copy
-import csv
-import cv2
-from datetime import datetime
-from distinctipy import distinctipy
 import glob
-import json
 import logging
-import math
-from matplotlib import pyplot as plt
-import numpy as np
 import os
 import os.path as osp
-import pandas as pd
-import PIL
+from PIL import Image
 import platform
-import sys
 from termcolor import colored
 import time
 
@@ -54,7 +43,7 @@ def images_to_gif(args, save_dir):
     files = sorted(glob.glob(f'{images_dir}/*.png'))
 
     for item in files:
-        new_frame = PIL.Image.open(item)
+        new_frame = Image.open(item)
         frames.append(new_frame)
 
     gif_name = osp.join(save_dir, args.gif_name)
