@@ -130,8 +130,9 @@ def read_csv(csv_path):
 
     return data_list
 
-def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, auto_save = False):
 
+def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, auto_save = False):
+    logger.info(f'run_calib_manual({calib_points_path}, {image_path}, {sat_mode}, {output_folder}, {auto_save})')
     ###################################################################
     # INPUT VALUES
     ###################################################################
@@ -292,7 +293,8 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
         im_calib_path = os.path.join(output_folder, im_calib_file_name);
         cv2.imwrite(im_calib_path, im );
 
-        print('\n Image config file saved %s \n' %(im_calib_path))
+        logger.info(f'Image config file saved {im_calib_path}')
+        d_print_y(f'Image config file saved {im_calib_path}')
 
     cv2.destroyAllWindows()
     print("Program Exit\n")
@@ -300,7 +302,7 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
 
 
 def main():
-
+    logger.info(f'main()')
 
     # Print instructions
     print("############################################################")
@@ -354,8 +356,9 @@ def main():
               f'  {osp.join(save_dir, "camera_calib_manual_latlon.csv")}')
         return
 
-    #Run camera calibration
-    run_calib_manual(args.calib_points_path, args.image_path, args.satellite_mode, args.output_folder_path);
+    # Run camera calibration
+    # run_calib_manual(args.calib_points_path, args.image_path, args.satellite_mode, args.output_folder_path)
+    run_calib_manual(args.calib_points_path, args.image_path, args.satellite_mode, save_dir)
 
 
 if __name__ == '__main__':

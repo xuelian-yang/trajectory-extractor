@@ -16,10 +16,11 @@ set time_sh_start=%time%
 :: =============================================================================
 set alaco_temp_dir=E:/Github/trajectory-extractor/temp/calib_feature_parser
 set alaco_input_dir=E:/Github/trajectory-extractor/test_alaco/hdmap_calib
+set temp_path=E:/Github/trajectory-extractor/temp
 set json_ext=.json
 set png_ext=.png
 
-set png_name_cam=10.10.145.232
+set png_name_cam=10.10.145.231
 set feat_name_cam=feature_points_%png_name_cam%
 set png_name_hd=hdmap_0
 set feat_name_hd=feature_points_%png_name_hd%
@@ -42,13 +43,16 @@ python traj_ext/camera_calib/run_calib_manual.py ^
   -calib_points %alaco_temp_dir%/%feat_name_hd%%json_ext%_camera_calib_manual_latlon.csv ^
   -image %alaco_input_dir%/%png_name_hd%%png_ext%
 
+
 :: 手动选取检测区域
 python traj_ext/camera_calib/run_detection_zone.py ^
-  -camera_street %alaco_input_dir%/%png_name_cam%_cfg.yml ^
+  -camera_street %temp_path%/run_calib_manual/%png_name_cam%_cfg.yml ^
   -image_street %alaco_input_dir%/%png_name_cam%%png_ext% ^
-  -camera_sat %alaco_input_dir%/%png_name_hd%_cfg.yml ^
+  -camera_sat %temp_path%/run_calib_manual/%png_name_hd%_cfg.yml ^
   -image_sat %alaco_input_dir%/%png_name_hd%%png_ext% ^
   -output_name %png_name_cam%
+
+goto :EOF
 
 :: 显示 ROI 区域
 python traj_ext/camera_calib/run_show_calib.py ^

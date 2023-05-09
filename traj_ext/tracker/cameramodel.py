@@ -9,11 +9,13 @@
 # Utility functions such as projection, etc
 # Ref: https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
 
+import logging
 import numpy as np
 import math
 import cv2
 import sys
 import os
+from termcolor import colored
 
 from traj_ext.utils.mathutil import *
 
@@ -325,7 +327,8 @@ class CameraModel:
         fs_write.write('camera_matrix', self.cam_matrix);
         fs_write.write('dist_coeffs', self.dist_coeffs);
         fs_write.release()
-        print('\n Camera config file saved %s \n' %(output_path))
+        logging.info(f'Camera config file saved {output_path}')
+        print(colored(f'Camera config file saved {output_path}', 'yellow'))
 
     def display_NED_frame(self, image):
         """Display the NED frame on the image according to the camera model

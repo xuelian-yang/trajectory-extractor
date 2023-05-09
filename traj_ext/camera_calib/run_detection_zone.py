@@ -12,10 +12,11 @@ python traj_ext/camera_calib/run_detection_zone.py ^
   -output_name brest
 
 set home_path=E:/Github/trajectory-extractor/test_alaco/hdmap_calib
+set temp_path=E:/Github/trajectory-extractor/temp
 python traj_ext/camera_calib/run_detection_zone.py ^
-  -camera_street %home_path%/10.10.145.231_cfg.yml ^
+  -camera_street %temp_path%/run_calib_manual/10.10.145.231_cfg.yml ^
   -image_street %home_path%/10.10.145.231.png ^
-  -camera_sat %home_path%/hdmap_0_cfg.yml ^
+  -camera_sat %temp_path%/run_calib_manual/hdmap_0_cfg.yml ^
   -image_sat %home_path%/hdmap_0.png ^
   -output_name 10.10.145.231
 """
@@ -131,8 +132,8 @@ def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list):
         cv2.imshow("image_1", image_1_temp)
 
 
-def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_path, image_sat_path, output_name):
-    logger.info(f'run_detection_zone(..)')
+def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_path, image_sat_path, output_name, save_dir):
+    logger.info(f'run_detection_zone({cam_model_street_path}, {image_street_path}, {cam_model_sat_path}, {image_sat_path}, {output_name}, {save_dir})')
     # Print instructions
     print("Instruction:")
     print("    - Click on the image to define the detection zone")
@@ -228,11 +229,12 @@ def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_p
         if save_zone:
 
             # Define output name
-            output_name_det = output_name + '_detection_zone.yml';
-            output_path = os.path.join(os.path.dirname(cam_model_street_path), output_name_det)
+            output_name_det = output_name + '_detection_zone.yml'
+            # output_path = os.path.join(os.path.dirname(cam_model_street_path), output_name_det)
+            output_path = os.path.join(save_dir, output_name_det)
 
             # Write Param in YAML file
-            det_zone_FNED.save_to_yml(output_path);
+            det_zone_FNED.save_to_yml(output_path)
 
     model_points_IM = np.array([]);
     model_points_IM.shape = (0,2);
@@ -252,11 +254,12 @@ def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_p
     if save_zone:
 
         # Define output name
-        output_name_det_im = output_name + '_detection_zone_im.yml';
-        output_im_path = os.path.join(os.path.dirname(cam_model_street_path), output_name_det_im)
+        output_name_det_im = output_name + '_detection_zone_im.yml'
+        # output_im_path = os.path.join(os.path.dirname(cam_model_street_path), output_name_det_im)
+        output_im_path = os.path.join(save_dir, output_name_det_im)
 
         # Write Param in YAML file
-        det_zone_IM.save_to_yml(output_im_path);
+        det_zone_IM.save_to_yml(output_im_path)
 
     print("\nProgram Exit")
     print("############################################################\n")
@@ -296,8 +299,13 @@ def main():
         help='Name of the output files')
     args = argparser.parse_args();
 
+    ws = WorkSpace()
+    save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
+    if not osp.exists(save_dir):
+        os.makedirs(save_dir)
+
     #Run camera calibration
-    run_detection_zone(args.cam_model_street_path, args.image_street_path, args.cam_model_sat_path, args.image_sat_path, args.output_name);
+    run_detection_zone(args.cam_model_street_path, args.image_street_path, args.cam_model_sat_path, args.image_sat_path, args.output_name, save_dir)
 
 
 if __name__ == '__main__':

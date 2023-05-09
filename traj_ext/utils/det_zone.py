@@ -6,9 +6,11 @@
 # @Github:
 
 import csv
+import logging
 import numpy as np
 import cv2
 import platform
+from termcolor import colored
 
 isWindows = (platform.system() == "Windows")
 
@@ -56,7 +58,8 @@ class DetZoneFNED(object):
         fs_write = cv2.FileStorage(output_path, cv2.FILE_STORAGE_WRITE)
         fs_write.write('model_points_FNED', self.pt_det_zone_FNED);
         fs_write.release()
-        print('\nDetection Zone F config file saved %s' %(output_path));
+        logging.info(f'Detection Zone F config file saved {output_path}')
+        print(colored(f'Detection Zone F config file saved {output_path}', 'blue'))
 
     def display_on_image(self, image, cam_model, color=(0,0,255), thickness = 1):
         """Display the dection zone on an image
@@ -222,7 +225,8 @@ class DetZoneImage(object):
         fs_write_im = cv2.FileStorage(output_path, cv2.FILE_STORAGE_WRITE)
         fs_write_im.write('model_points_IM', self.pt_det_zone_IM);
         fs_write_im.release()
-        print('\nDetection Zone IM config file saved %s' %(output_path));
+        logging.info(f'Detection Zone IM config file saved {output_path}')
+        print(colored(f'Detection Zone IM config file saved {output_path}', 'blue'))
 
 
     def in_zone(self, pt):
