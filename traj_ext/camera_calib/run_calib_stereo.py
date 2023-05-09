@@ -37,8 +37,10 @@ CAMERA_CFG_1_PATH = os.path.join(ROOT_DIR,'camera_calib/calib_file/varna/varna_a
 
 IMG_2_PATH = os.path.join(ROOT_DIR,'camera_calib/calib_file/varna/varna_area1_camera_street.jpg')
 
-OUTPUT_CFG_PATH = os.path.join(ROOT_DIR,'camera_calib/calib_file/varna_area1_camera_street_cfg.cfg')
-OUTPUT_IMG_PATH = os.path.join(ROOT_DIR,'camera_calib/calib_input/varna_area1_camera_street_calib.png')
+# OUTPUT_CFG_PATH = os.path.join(ROOT_DIR,'camera_calib/calib_file/varna_area1_camera_street_cfg.cfg')
+# OUTPUT_IMG_PATH = os.path.join(ROOT_DIR,'camera_calib/calib_input/varna_area1_camera_street_calib.png')
+OUTPUT_CFG_PATH = 'varna_area1_camera_street_cfg.cfg'
+OUTPUT_IMG_PATH = 'varna_area1_camera_street_calib.png'
 
 
 def click(event, x, y, flags, param):
@@ -103,6 +105,11 @@ def main():
     parser.add_argument("-i", "--image", default= IMG_1_PATH, help="Path to the image")
     parser.add_argument('--camera_1_cfg',dest="camera_1_cfg", default=CAMERA_CFG_1_PATH, type=str, help='Camera 1 yml config file');
     args = parser.parse_args()
+
+    ws = WorkSpace()
+    save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
+    if not osp.exists(save_dir):
+        os.makedirs(save_dir)
 
     if not osp.exists(args.camera_1_cfg):
         d_print_r(f'file not exist: {args.camera_1_cfg}')
@@ -236,16 +243,18 @@ def main():
     if save_bool:
         # Define output name
         #output_path = image_path.split('.')[0] + '_cfg.yml';
-        output_path = OUTPUT_CFG_PATH;
+        output_path = osp.join(save_dir, OUTPUT_CFG_PATH)
 
         # Save the parameters
-        save_camera_calibration(output_path, rot_CF_F, trans_CF_F, camera_matrix, dist_coeffs);
+        # save_camera_calibration(output_path, rot_CF_F, trans_CF_F, camera_matrix, dist_coeffs)
+        cam_model = cm.CameraModel(rot_CF_F, trans_CF_F, camera_matrix, dist_coeffs)
+        cam_model.save_to_yml(output_path)
 
         # Save image with key-points
         # im_calib_path = image_path.split('.')[0] + '_calib.' + image_path.split('.')[-1];
-        im_calib_path = OUTPUT_IMG_PATH;
-        cv2.imwrite(im_calib_path, im);
-        print('\n Image config file saved %s \n' %(im_calib_path))
+        im_calib_path = osp.join(save_dir, OUTPUT_IMG_PATH)
+        cv2.imwrite(im_calib_path, im)
+        d_print_y(f'Image config file saved {im_calib_path}')
 
 
     cv2.destroyAllWindows()
