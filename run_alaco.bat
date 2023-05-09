@@ -19,9 +19,12 @@ set time_sh_start=%time%
 :: =============================================================================
 :: ALACO Demo 参数
 :: 数据路径
-set SOURCE_FOLDER=test_alaco/alaco_W92_2023-05-09_14_18_54
+set CASE_NAME=alaco_W92_2023-05-09_14_18_54
+:: set SOURCE_FOLDER=test_alaco/alaco_W92_2023-05-09_14_18_54
+set SOURCE_FOLDER=test_alaco/%CASE_NAME%
 set VIDEO_NAME=W92_2023-05-09_14_18_54.mp4
 set NAME=W92_2023-05-09_14_18_54
+set GIF_NAME=alaco_traj_demo_%CASE_NAME%.gif
 set DELTA_MS=100
 set LOCATION_NAME=alaco_W92
 set DATE="20230509"
@@ -86,7 +89,7 @@ set TRAJ_INSPECT_PEDESTRIANS=%TRAJ_INSPECT_PEDESTRIANS_DIR%/%NAME%_traj.csv
 :: ##################################################################
 set VIDEO_PATH=%SOURCE_FOLDER%/%VIDEO_NAME%
 
-:: goto :skip_for_debug
+goto :skip_for_debug
 
 python traj_ext/object_det/run_saveimages.py %VIDEO_PATH% --skip 3
 
@@ -201,8 +204,6 @@ python traj_ext/visualization/run_inspect_traj.py ^
             -start_time %START_TIME% ^
             -export
 
-:skip_for_debug
-
 :: ###################################################################
 :: # VISUALIZATION
 :: ###################################################################
@@ -218,6 +219,14 @@ python traj_ext/visualization/run_visualizer.py ^
             -export 1
 
 ::             -hd_map %SOURCE_FOLDER%/%HD_MAP% ^
+
+:skip_for_debug
+:: ###################################################################
+:: 结果保存为 gif
+:: ###################################################################
+python util_create_gif.py ^
+  --case_name %CASE_NAME% ^
+  --gif_name %GIF_NAME%
 
 :: =============================================================================
 :: 计时结束
