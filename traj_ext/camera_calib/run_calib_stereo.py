@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+"""
+python run_calib_stereo.py
+"""
+
 # import the necessary packages
 import argparse
 import cv2

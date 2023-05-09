@@ -4,16 +4,16 @@
 cd traj_ext/camera_calib/
 
 set home_path=E:/Github/trajectory-extractor/traj_ext/camera_calib/calib_file/brest
-python run_show_calib.py ^
+python traj_ext/camera_calib/run_show_calib.py ^
   --camera_calib %home_path%/brest_area1_street_cfg.yml ^
   --image %home_path%/brest_area1_street.jpg ^
   --detection_zone %home_path%/brest_area1_detection_zone.yml
 
 set home_path=E:/Github/trajectory-extractor/test_alaco/hdmap_calib
-python run_show_calib.py ^
+python traj_ext/camera_calib/run_show_calib.py ^
   --camera_calib %home_path%/10.10.145.231_cfg.yml ^
   --image %home_path%/10.10.145.231.png ^
-  --detection_zone %home_path%/_detection_zone.yml
+  --detection_zone %home_path%/10.10.145.231_detection_zone.yml
 """
 
 # import the necessary packages

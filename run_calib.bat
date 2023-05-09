@@ -24,6 +24,8 @@ set feat_name_cam=feature_points_%png_name_cam%
 set png_name_hd=hdmap_0
 set feat_name_hd=feature_points_%png_name_hd%
 
+:: 注: 操作完不停地按 Enter 键保存
+
 :: 生成标定输入
 python traj_ext/camera_calib/calib_feature_parser.py ^
   --labelme_json %feat_name_cam%%json_ext%
@@ -45,7 +47,14 @@ python traj_ext/camera_calib/run_detection_zone.py ^
   -camera_street %alaco_input_dir%/%png_name_cam%_cfg.yml ^
   -image_street %alaco_input_dir%/%png_name_cam%%png_ext% ^
   -camera_sat %alaco_input_dir%/%png_name_hd%_cfg.yml ^
-  -image_sat %alaco_input_dir%/%png_name_hd%%png_ext%
+  -image_sat %alaco_input_dir%/%png_name_hd%%png_ext% ^
+  -output_name %png_name_cam%
+
+:: 显示 ROI 区域
+python traj_ext/camera_calib/run_show_calib.py ^
+  --camera_calib %alaco_input_dir%/%png_name_cam%_cfg.yml ^
+  --image %alaco_input_dir%/%png_name_cam%.png ^
+  --detection_zone %alaco_input_dir%/%png_name_cam%_detection_zone.yml
 
 :: =============================================================================
 :: 计时结束
