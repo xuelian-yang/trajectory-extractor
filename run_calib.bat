@@ -21,7 +21,7 @@ set temp_path=E:/Github/trajectory-extractor/temp
 set json_ext=.json
 set png_ext=.png
 
-set png_name_cam=10.10.145.231
+set png_name_cam=10.10.145.232
 set feat_name_cam=feature_points_%png_name_cam%
 set png_name_hd=hdmap_0
 set feat_name_hd=feature_points_%png_name_hd%
