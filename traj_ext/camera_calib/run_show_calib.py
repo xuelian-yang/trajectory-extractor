@@ -10,20 +10,23 @@ python traj_ext/camera_calib/run_show_calib.py ^
   --detection_zone %home_path%/brest_area1_detection_zone.yml
 
 set home_path=E:/Github/trajectory-extractor/test_alaco/hdmap_calib
+set temp_path=E:/Github/trajectory-extractor/temp
 python traj_ext/camera_calib/run_show_calib.py ^
-  --camera_calib %home_path%/10.10.145.231_cfg.yml ^
+  --camera_calib %temp_path%/run_calib_manual/10.10.145.231_cfg.yml ^
   --image %home_path%/10.10.145.231.png ^
-  --detection_zone %home_path%/10.10.145.231_detection_zone.yml
+  --detection_zone %temp_path%/run_detection_zone/10.10.145.231_detection_zone.yml
 """
 
 # import the necessary packages
 import argparse
 import cv2
+import logging
 import sys
 import os
 import os.path as osp
 import platform
 import numpy as np
+from termcolor import colored
 import time
 import copy
 from scipy.optimize import linear_sum_assignment
@@ -33,6 +36,10 @@ sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.tracker import cameramodel
 from traj_ext.utils import det_zone
 
+from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
+from configs.workspace import WorkSpace
+
+logger = logging.getLogger(__name__)
 isWindows = (platform.system() == "Windows")
 
 windows, win_w, win_h = [], 1920, 1080
@@ -185,8 +192,15 @@ def main():
 
 
 if __name__ == '__main__':
+    time_beg = time.time()
+    this_filename = osp.basename(__file__)
+    setup_log(this_filename)
 
     try:
         main()
     except KeyboardInterrupt:
         print('\nCancelled by user. Bye!')
+
+    time_end = time.time()
+    logger.warning(f'{this_filename} elapsed {time_end - time_beg} seconds')
+    print(colored(f'{this_filename} elapsed {time_end - time_beg} seconds', 'yellow'))
