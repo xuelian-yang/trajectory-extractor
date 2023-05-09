@@ -2,6 +2,15 @@
 
 """
 将 run_visualizer.py 生成的图片导出为 gif
+
+python util_create_gif.py -h
+python util_create_gif.py --help
+
+python util_create_gif.py
+
+python util_create_gif.py ^
+  --case_name temp_v2_alaco_W92_2023-05-09_14_18_54 ^
+  --gif_name alaco_demo_trajectory-extractor_partial.gif
 """
 
 import argparse
@@ -31,23 +40,25 @@ from configs.workspace import WorkSpace
 logger = logging.getLogger(__name__)
 isWindows = (platform.system() == "Windows")
 
-def images_to_gif(save_dir):
-    data_dir = 'E:/Github/trajectory-extractor/test_alaco'
-    case_dir = 'temp_v2_alaco_W92_2023-05-09_14_18_54/output/visualizer/img_sat_concat'
 
-    gif_name = osp.join(save_dir, 'alaco_demo_trajectory-extractor.gif')
+def images_to_gif(args, save_dir):
+    path_prefix = 'E:/Github/trajectory-extractor/test_alaco'
+    path_suffix = 'output/visualizer/img_sat_concat'
+
     frames = []
-    images_dir = osp.join(data_dir, case_dir)
+    images_dir = osp.join(path_prefix, args.case_name, path_suffix)
     if not osp.exists(images_dir):
         raise ValueError(f'path not exist: {images_dir}')
+    d_print_b(f'loading {images_dir}')
 
     files = sorted(glob.glob(f'{images_dir}/*.png'))
-    # for idx, item in enumerate(files):
-    #    print(f'{idx:4d} {item}')
 
     for item in files:
         new_frame = PIL.Image.open(item)
         frames.append(new_frame)
+
+    gif_name = osp.join(save_dir, args.gif_name)
+    d_print_b(f'saving {gif_name}')
     frames[0].save(
         gif_name,
         format='GIF',
@@ -57,18 +68,26 @@ def images_to_gif(save_dir):
         loop=0,
         comment=b'trajectory-extractor')
 
+
 def main():
     argparser = argparse.ArgumentParser(
-        description='generate feature point files for calibration')
-    argparser.add_argument('--labelme_json', default='feature_points_10.10.145.231.json')
+        description='image sequence to gif')
+    argparser.add_argument('-c', '--case_name', type=str,
+                           default='alaco_W92_2023-05-09_14_18_54',
+                           help='case name for loading')
+    argparser.add_argument('-g', '--gif_name', type=str,
+                           default='alaco_demo_trajectory-extractor.gif',
+                           help='gif name for saving')
     args = argparser.parse_args()
+    for item in vars(args):
+        logger.info(f'{item:20s} : {getattr(args, item)}')
 
     ws = WorkSpace()
     save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
     if not osp.exists(save_dir):
         os.makedirs(save_dir)
 
-    images_to_gif(save_dir)
+    images_to_gif(args, save_dir)
 
 
 if __name__ == "__main__":
