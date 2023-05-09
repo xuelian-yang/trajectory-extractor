@@ -26,16 +26,20 @@ python traj_ext/camera_calib/run_calib_manual.py ^
 """
 
 import cv2
+import logging
 import numpy as np
 import sys
 import os
 import os.path as osp
+import platform
 import scipy.optimize as opt
 import yaml
 import argparse
 import configparser
 import csv
 import shutil
+import time
+from termcolor import colored
 
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.tracker.cameramodel import CameraModel
@@ -43,6 +47,12 @@ from traj_ext.tracker.cameramodel import CameraModel
 from traj_ext.camera_calib import calib_utils
 from traj_ext.utils import cfgutil
 from traj_ext.utils import mathutil
+
+from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
+from configs.workspace import WorkSpace
+
+logger = logging.getLogger(__name__)
+
 
 def write_default_latlon_csv(path_csv):
     csv_open = False;
@@ -325,23 +335,33 @@ def main():
 
     args = argparser.parse_args();
 
+    ws = WorkSpace()
+    save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
+    if not osp.exists(save_dir):
+        os.makedirs(save_dir)
+
     if args.init:
 
         # Create csv templates
-        write_default_cartesian_csv('camera_calib_manual_cartesian.csv');
-        write_default_latlon_csv('camera_calib_manual_latlon.csv');
+        write_default_cartesian_csv(osp.join(save_dir, 'camera_calib_manual_cartesian.csv'))
+        write_default_latlon_csv(osp.join(save_dir, 'camera_calib_manual_latlon.csv'))
 
         # # Create default config file
         # create_default_cfg();
 
-        print('Please fill the config files and restart the program:\n-camera_calib_manual_cartesian.csv\n-camera_calib_manual_latlon.csv')
-        return;
+        print(f'Please fill the config files and restart the program:\n'
+              f'  {osp.join(save_dir, "camera_calib_manual_cartesian.csv")}\n\tor\n'
+              f'  {osp.join(save_dir, "camera_calib_manual_latlon.csv")}')
+        return
 
     #Run camera calibration
     run_calib_manual(args.calib_points_path, args.image_path, args.satellite_mode, args.output_folder_path);
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
+    time_beg = time.time()
+    this_filename = osp.basename(__file__)
+    setup_log(this_filename)
 
     try:
         main()
@@ -349,3 +369,7 @@ if __name__ == '__main__':
         print('\nCancelled by user. Bye!')
     # except Exception as e:
     #     print('[Error]: {}'.format(e))
+
+    time_end = time.time()
+    logger.warning(f'{this_filename} elapsed {time_end - time_beg} seconds')
+    print(colored(f'{this_filename} elapsed {time_end - time_beg} seconds', 'yellow'))
