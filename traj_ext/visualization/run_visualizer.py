@@ -131,23 +131,24 @@ def main(args_input):
         default='',
         help='Path to json config')
 
-    args = argparser.parse_args(args_input);
+    args = argparser.parse_args(args_input)
 
     if os.path.isfile(args.config_json):
         with open(args.config_json, 'r') as f:
             data_json = json.load(f)
             vars(args).update(data_json)
 
-    vars(args).pop('config_json', None);
-
-    run_visualize_traj(args);
+    vars(args).pop('config_json', None)
+    for item in vars(args):
+        logger.info(f'{item:20s} : {getattr(args, item)}')
+    run_visualize_traj(args)
 
 
 def run_visualize_traj(config):
-
+    logger.info(f'run_visualize_traj({config})')
     # Create output folder
-    output_dir = config.output_dir;
-    output_dir = os.path.join(output_dir, 'visualizer');
+    output_dir = config.output_dir
+    output_dir = os.path.join(output_dir, 'visualizer')
     os.makedirs(output_dir, exist_ok=True)
 
     # Create output sub-folder
@@ -194,13 +195,16 @@ def run_visualize_traj(config):
     # Trajectories
     traj_list = Trajectory.read_trajectory_panda_csv(config.traj);
 
-    sat_view_available = False;
-    sat_view_enable = False;
+    sat_view_available = False
+    sat_view_enable = False
     if os.path.isfile(config.camera_sat) and os.path.isfile(config.camera_sat_img):
-        cam_model_sat = CameraModel.read_from_yml(config.camera_sat);
-        image_sat = cv2.imread(os.path.join(config.camera_sat_img));
+        cam_model_sat = CameraModel.read_from_yml(config.camera_sat)
+        image_sat = cv2.imread(os.path.join(config.camera_sat_img))
 
-        sat_view_available = True;
+        sat_view_available = True
+
+    d_print_r(f'sat_view_available: {sat_view_available}')
+    d_print_r(f'sat_view_enable: {sat_view_enable}')
 
     # Check if image is directoty
     image_in_dir = os.path.isdir(config.image_dir);
@@ -216,13 +220,13 @@ def run_visualize_traj(config):
 
     hd_map_available = os.path.isfile(config.hd_map);
     if hd_map_available:
-
         hd_map = HDmap.from_csv(config.hd_map);
-
         cam_model_hdmap, image_hdmap = hd_map.create_view();
-
         image_hdmap = hd_map.display_on_image(image_hdmap, cam_model_hdmap);
 
+    d_print_r(f'hd_map_available: {hd_map_available}')
+    if not hd_map_available:
+        sat_view_enable = True
 
     # Shrink det zone for complete
     det_zone_FNED_complete = None;
@@ -406,10 +410,8 @@ def run_visualize_traj(config):
                 print('Mode: Export mode stopped');
 
         elif key == 255:
-            pass;
-
+            pass
         else:
-
             print('\nInstruction:\n- n: Next frame\
                                  \n- b: Jump 1000 frame forward\
                                  \n- p: Previous frame\
