@@ -157,6 +157,7 @@ dmypy.json
 .pyre/
 logs/
 temp/
+temp_*/
 
 # test_dataset/
 # *.csv

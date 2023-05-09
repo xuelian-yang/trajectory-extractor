@@ -19,7 +19,7 @@ set time_sh_start=%time%
 :: =============================================================================
 :: ALACO Demo 参数
 :: 数据路径
-set SOURCE_FOLDER=test_alaco/W92_2023-05-09_14_18_54
+set SOURCE_FOLDER=test_alaco/alaco_W92_2023-05-09_14_18_54
 set VIDEO_NAME=W92_2023-05-09_14_18_54.mp4
 set NAME=W92_2023-05-09_14_18_54
 set DELTA_MS=100
@@ -46,10 +46,10 @@ set IGNORE_AREA_PEDESTRIANS=""
 
 :: SET CROP VALUES FOR DETECTION HERE IF NEEDED
 :: TODO: 设置裁剪区域
-set CROP_X1=180
-set CROP_Y1=120
-set CROP_X2=4000
-set CROP_Y2=2000
+set CROP_X1=0
+set CROP_Y1=0
+set CROP_X2=4096
+set CROP_Y2=2160
 
 set IMG_DIR=%SOURCE_FOLDER%/img
 set OUTPUT_DIR=%SOURCE_FOLDER%/output
@@ -84,7 +84,53 @@ set TRAJ_INSPECT_PEDESTRIANS=%TRAJ_INSPECT_PEDESTRIANS_DIR%/%NAME%_traj.csv
 :: # EXTRACTING FRAMES FROM VIDEO
 :: ##################################################################
 set VIDEO_PATH=%SOURCE_FOLDER%/%VIDEO_NAME%
+
+goto :skip_for_debug
+
 python traj_ext/object_det/run_saveimages.py %VIDEO_PATH% --skip 3
+
+:skip_for_debug
+
+:: ####################################################################
+:: # OBJECT DETECTION
+:: ####################################################################
+python traj_ext/object_det/mask_rcnn/run_detections_csv.py ^
+        -image_dir %IMG_DIR% ^
+        -output_dir %OUTPUT_DIR% ^
+        -crop_x1y1x2y2 %CROP_X1% %CROP_Y1% %CROP_X2% %CROP_Y2% ^
+        -no_save_images
+
+
+:: ####################################################################
+:: # VEHICLES
+:: ####################################################################
+:: # Det association
+python traj_ext/det_association/run_det_association.py ^
+            -image_dir %IMG_DIR% ^
+            -output_dir %OUTPUT_VEHICLES_DIR% ^
+            -det_dir %DET_DIR% ^
+            -ignore_detection_area %SOURCE_FOLDER%/%IGNORE_AREA_VEHICLES% ^
+            -det_zone_im %SOURCE_FOLDER%/%DET_ZONE_IM_VEHICLES% ^
+            -mode %MODE_VEHICLES% ^
+            -no_save_images
+
+:: # Process
+python traj_ext/postprocess_track/run_postprocess.py ^
+            -image_dir %IMG_DIR% ^
+            -output_dir %OUTPUT_VEHICLES_DIR% ^
+            -det_dir %DET_DIR% ^
+            -det_asso_dir %DET_ASSO_VEHICLES_DIR% ^
+            -track_merge %TRACK_MERGE_VEHICLES% ^
+            -camera_street %SOURCE_FOLDER%/%CAMERA_STREET% ^
+            -camera_sat  %SOURCE_FOLDER%/%CAMERA_SAT% ^
+            -camera_sat_img %SOURCE_FOLDER%/%CAMERA_SAT_IMG% ^
+            -det_zone_fned %SOURCE_FOLDER%/%DET_ZONE_FNED_VEHICLES% ^
+            -delta_ms %DELTA_MS% ^
+            -location_name %LOCATION_NAME% ^
+            -dynamic_model %DYNAMIC_MODEL_VEHICLES% ^
+            -date %DATE% ^
+            -start_time %START_TIME% ^
+            -no_save_images
 
 :: =============================================================================
 :: 计时结束
