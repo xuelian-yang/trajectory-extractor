@@ -8,8 +8,9 @@ import copy
 import cv2
 import argparse
 import os
+import platform
 import subprocess
-import math;
+import math
 import sys
 import time
 import json
@@ -45,6 +46,7 @@ from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_pr
 from configs.workspace import WorkSpace
 
 logger = logging.getLogger(__name__)
+isWindows = (platform.system() == "Windows")
 
 
 def main(args_input):
@@ -230,8 +232,6 @@ def run_visualize_traj(config):
             if not traj.check_is_complete(det_zone_FNED_complete):
                 print('Track: {} time_ms: {} not complete'.format(traj.get_id(), traj.get_start_trajoint().time_ms))
 
-
-
     skip_value = 1;
     frame_index = 0;
     export_mode = False;
@@ -240,8 +240,24 @@ def run_visualize_traj(config):
     if config.export:
         export_mode = True;
 
-    while True:
+    # windows, win_w, win_h = [], 1920, 1080
+    windows, win_w, win_h = [], 640, 480
 
+    def show_image_without_large_window(win_name, my_img):
+        """避免过大的图像显示窗口."""
+        if win_name not in windows:
+            windows.append(win_name)
+            if isWindows:
+                cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL)
+            else:
+                cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
+            temp_h, temp_w, _ = my_img.shape
+            if temp_h > win_h or temp_w > win_w:
+                cv2.resizeWindow(str(win_name), win_w, win_h)
+        # Show image
+        cv2.imshow(str(win_name), my_img)
+
+    while True:
         #######################################################
         ## Show Trajectories
         #######################################################
@@ -257,7 +273,6 @@ def run_visualize_traj(config):
             # Copy image
             image_current = image;
 
-
         if not (image_current is None):
 
             print('Showing: frame_id: {} image: {}'.format(frame_index, img_file_name));
@@ -267,30 +282,30 @@ def run_visualize_traj(config):
             image_current_traj, _ = run_inspect_traj.display_traj_on_image(time_ms, cam_model, image_current_traj, traj_person_list, det_zone_FNED_list = [det_zone_FNED], no_label = config.no_label);
 
             # Show image
-            cv2.imshow('Trajectory visualizer', image_current_traj)
+            # cv2.imshow('Trajectory visualizer', image_current_traj)
+            show_image_without_large_window('Trajectory visualizer', image_current_traj)
 
             if sat_view_available:
-
                 if sat_view_enable:
-
                     # Display traj
                     image_sat_current, _ = run_inspect_traj.display_traj_on_image(time_ms, cam_model_sat, image_sat, traj_list, det_zone_FNED_list = [det_zone_FNED], no_label = config.no_label);
                     image_sat_current, _ = run_inspect_traj.display_traj_on_image(time_ms, cam_model_sat, image_sat_current, traj_person_list, det_zone_FNED_list = [det_zone_FNED], no_label = config.no_label)
                     # Show image
-                    cv2.imshow('Sat View merged', image_sat_current)
+                    # cv2.imshow('Sat View merged', image_sat_current)
+                    show_image_without_large_window('Sat View merged', image_sat_current)
 
             if hd_map_available:
-
                 # Display traj
                 image_hdmap_current, _ = run_inspect_traj.display_traj_on_image(time_ms, cam_model_hdmap, image_hdmap, traj_list, det_zone_FNED_list = [det_zone_FNED], no_label = config.no_label, velocity_label=True);
                 image_hdmap_current, _ = run_inspect_traj.display_traj_on_image(time_ms, cam_model_hdmap, image_hdmap_current, traj_person_list, det_zone_FNED_list = [det_zone_FNED], no_label = config.no_label, velocity_label=True);
 
                 # Show image
-                cv2.imshow('HD map view merged', image_hdmap_current)
-
+                # cv2.imshow('HD map view merged', image_hdmap_current)
+                show_image_without_large_window('HD map view merged', image_hdmap_current)
 
                 image_concat = EKF_utils.concatenate_images(image_current_traj, image_hdmap_current)
-                cv2.imshow('View: Camera and HD map', image_concat)
+                # cv2.imshow('View: Camera and HD map', image_concat)
+                show_image_without_large_window('View: Camera and HD map', image_concat)
 
             if export_mode:
 
