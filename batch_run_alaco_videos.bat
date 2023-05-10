@@ -18,7 +18,8 @@ set time_sh_start=%time%
 
 :: =============================================================================
 REM set VIDEOS_DIR=E:/Github/trajectory-extractor/test_alaco/temp_video/multi-stream-reocrds/2023-05-09_14_18_54
-set VIDEOS_DIR=E:/Github/trajectory-extractor/test_alaco/temp_video/multi-stream-reocrds/2023-04-25_17_23_30
+REM set VIDEOS_DIR=E:/Github/trajectory-extractor/test_alaco/temp_video/multi-stream-reocrds/2023-04-25_17_23_30
+set VIDEOS_DIR=E:/Github/trajectory-extractor/test_alaco/temp_video/multi-stream-reocrds/2023-04-25_10_03_47
 
 :: set camera_name=""
 :: 注意: for 命令括号内不可有 :: 注释，但可用 REM
@@ -140,7 +141,7 @@ REM echo %SOURCE_FOLDER%
 echo %VIDEO_NAME%
 REM echo %NAME%
 
-set GIF_NAME=alaco_traj_demo_%var_camera_ip%_%CASE_NAME%.gif
+set GIF_NAME=alaco_traj_demo_%var_camera_ip%_%CASE_NAME%_%var_video_name%.gif
 set DELTA_MS=100
 set LOCATION_NAME=alaco_%var_camera_name%
 set DATE="20230509"
@@ -196,12 +197,14 @@ set TRAJ_PEDESTRIANS=%TRAJ_PEDESTRIANS_DIR%/%NAME%_traj.csv
 set TRAJ_INSPECT_PEDESTRIANS_DIR=%OUTPUT_PEDESTRIANS_DIR%/traj_inspect/csv
 set TRAJ_INSPECT_PEDESTRIANS=%TRAJ_INSPECT_PEDESTRIANS_DIR%/%NAME%_traj.csv
 
+:: -----------------------------------------------------------------------------
+
 :: goto :just_create_gif
 
 :: ##################################################################
 :: # EXTRACTING FRAMES FROM VIDEO
 :: ##################################################################
-python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --max_frame_num 300
+python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --max_frame_num 600
 
 REM exit /b 0
 
