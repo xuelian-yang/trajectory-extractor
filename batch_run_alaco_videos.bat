@@ -196,6 +196,8 @@ set TRAJ_PEDESTRIANS=%TRAJ_PEDESTRIANS_DIR%/%NAME%_traj.csv
 set TRAJ_INSPECT_PEDESTRIANS_DIR=%OUTPUT_PEDESTRIANS_DIR%/traj_inspect/csv
 set TRAJ_INSPECT_PEDESTRIANS=%TRAJ_INSPECT_PEDESTRIANS_DIR%/%NAME%_traj.csv
 
+:: goto :just_create_gif
+
 :: ##################################################################
 :: # EXTRACTING FRAMES FROM VIDEO
 :: ##################################################################
@@ -333,11 +335,12 @@ python traj_ext/visualization/run_visualizer.py ^
             -export 1
 
 
+:just_create_gif
 :: ###################################################################
 :: 结果保存为 gif
 :: ###################################################################
 python util_create_gif.py ^
-  --case_name %CASE_NAME% ^
+  --img_seq_dir %OUTPUT_DIR%/visualizer/img_concat ^
   --gif_name %GIF_NAME%
 
 

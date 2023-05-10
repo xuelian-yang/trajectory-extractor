@@ -34,9 +34,8 @@ set START_TIME="1418"
 set CAMERA_STREET=10.10.145.232_cfg.yml
 set CAMERA_SAT=hdmap_0_cfg.yml
 set CAMERA_SAT_IMG=hdmap_0.png
-:: TODO: 需要生成高精地图
-:: set HD_MAP=brest_area1_street_hd_map.csv
-set HD_MAP=""
+:: 需要生成高精地图
+set HD_MAP="hdmap_0_hd_map.csv"
 
 :: SET DETECTION AD IGNORE ZONES
 set DET_ZONE_IM_VEHICLES=10.10.145.232_detection_zone_im.yml
@@ -89,7 +88,7 @@ set TRAJ_INSPECT_PEDESTRIANS=%TRAJ_INSPECT_PEDESTRIANS_DIR%/%NAME%_traj.csv
 :: ##################################################################
 set VIDEO_PATH=%SOURCE_FOLDER%/%VIDEO_NAME%
 
-goto :skip_for_debug
+:: goto :just_create_gif
 
 python traj_ext/object_det/run_saveimages.py %VIDEO_PATH% --skip 3
 
@@ -216,15 +215,16 @@ python traj_ext/visualization/run_visualizer.py ^
             -camera_sat  %SOURCE_FOLDER%/%CAMERA_SAT% ^
             -camera_sat_img %SOURCE_FOLDER%/%CAMERA_SAT_IMG% ^
             -det_zone_fned %SOURCE_FOLDER%/%DET_ZONE_FNED_VEHICLES% ^
+            -hd_map %SOURCE_FOLDER%/%HD_MAP% ^
             -output_dir %OUTPUT_DIR% ^
             -export 1
 
-goto :end_of_commands
+:just_create_gif
 :: ###################################################################
 :: 结果保存为 gif
 :: ###################################################################
 python util_create_gif.py ^
-  --case_name %CASE_NAME% ^
+  --img_seq_dir %OUTPUT_DIR%/visualizer/img_concat ^
   --gif_name %GIF_NAME%
 
 :end_of_commands

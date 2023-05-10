@@ -9,8 +9,8 @@ python util_create_gif.py --help
 python util_create_gif.py
 
 python util_create_gif.py ^
-  --case_name temp_v2_alaco_W92_2023-05-09_14_18_54 ^
-  --gif_name alaco_demo_trajectory-extractor_partial.gif
+  --img_seq_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output/visualizer/img_concat ^
+  --gif_name alaco_traj_demo_alaco_W92_2023-05-09_14_18_54.gif
 """
 
 import argparse
@@ -31,12 +31,10 @@ isWindows = (platform.system() == "Windows")
 
 
 def images_to_gif(args, save_dir):
-    path_prefix = 'E:/Github/trajectory-extractor/test_alaco'
-    path_suffix = 'output/visualizer/img_sat_concat'
-
     frames = []
-    images_dir = osp.join(path_prefix, args.case_name, path_suffix)
+    images_dir = args.img_seq_dir
     if not osp.exists(images_dir):
+        d_print_r(f'path not exist: {images_dir}')
         raise ValueError(f'path not exist: {images_dir}')
     d_print_b(f'loading {images_dir}')
 
@@ -61,11 +59,11 @@ def images_to_gif(args, save_dir):
 def main():
     argparser = argparse.ArgumentParser(
         description='image sequence to gif')
-    argparser.add_argument('-c', '--case_name', type=str,
-                           default='alaco_W92_2023-05-09_14_18_54',
-                           help='case name for loading')
+    argparser.add_argument('-c', '--img_seq_dir', type=str,
+                           required=True,
+                           help='image sequence path for loading')
     argparser.add_argument('-g', '--gif_name', type=str,
-                           default='alaco_demo_trajectory-extractor.gif',
+                           required=True,
                            help='gif name for saving')
     args = argparser.parse_args()
     for item in vars(args):
