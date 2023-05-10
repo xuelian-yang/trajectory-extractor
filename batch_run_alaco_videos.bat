@@ -20,13 +20,11 @@ set time_sh_start=%time%
 set VIDEOS_DIR=E:/Github/trajectory-extractor/test_alaco/temp_video/multi-stream-reocrds/2023-05-09_14_18_54
 
 :: set camera_name=""
-:: 注意: for 命令括号内不可有注释
+:: 注意: for 命令括号内不可有 :: 注释，但可用 REM
 for /f "delims=" %%x in (test_alaco/video_list.txt) do (
-    call :text_info "process %%x"
-    call :get_camera_name %%x
+    REM call :text_info "process %%x"
+    call :process_alaco_video %%x
 )
-
-
 
 goto :end_of_commands
 
@@ -309,9 +307,12 @@ exit /b 0
 echo [94m# %~1[0m
 exit /b 0
 
-:get_camera_name
+:: =============================================================================
+:: < 批量处理视频文件 >
+:: =============================================================================
+:process_alaco_video
 set var_video_name=%~1
-call :text_info %var_video_name%
+REM call :text_info %var_video_name%
 if %var_video_name:~0,1%==# (
   call :text_warn "ignore %~1"
   exit /b 0
@@ -320,23 +321,103 @@ if %var_video_name:~0,1%==# (
 set var_camera_name=%var_video_name:~0,3%
 
 :: 获取相机编码对应的 IP
-call :text_info %var_camera_name%
+REM call :text_info %var_camera_name%
 
 if "%var_camera_name%"=="W91" (
-  set camera_ip="10.10.145.231"
+  set var_camera_ip="10.10.145.231"
 ) else if "%var_camera_name%"=="W92" (
-  set camera_ip="10.10.145.232"
+  set var_camera_ip="10.10.145.232"
 ) else if "%var_camera_name%"=="W93" (
-  set camera_ip="10.10.145.233"
+  set var_camera_ip="10.10.145.233"
 ) else if "%var_camera_name%"=="W94" (
-  set camera_ip="10.10.145.234"
+  set var_camera_ip="10.10.145.234"
 ) else (
   call :text_warn "unknown camera name %var_camera_name%"
   exit /b 0
 )
 
-call :text_info "IP of %var_camera_name% is %camera_ip%"
+call :text_info "IP of %var_camera_name% is %var_camera_ip%"
+:: call :text_debug ">> %VIDEOS_DIR%/%var_video_name%"
+REM echo %VIDEOS_DIR%/%var_video_name%
+
+:: ALACO Demo 参数
+:: 数据路径
+set CASE_NAME=alaco_cameras
+set SOURCE_FOLDER=test_alaco/%CASE_NAME%
+set VIDEO_NAME=%VIDEOS_DIR%/%var_video_name%.mp4
+set NAME=%var_video_name%
+
+REM 调试打印
+REM echo %CASE_NAME%
+REM echo %SOURCE_FOLDER%
+echo %VIDEO_NAME%
+REM echo %NAME%
+
+set GIF_NAME=alaco_traj_demo_%var_camera_ip%_%CASE_NAME%.gif
+set DELTA_MS=100
+set LOCATION_NAME=alaco_%var_camera_name%
+set DATE="20230509"
+set START_TIME="1418"
+
+:: 标定文件
+set CAMERA_STREET=%var_camera_ip%_cfg.yml
+set CAMERA_SAT=hdmap_0_cfg.yml
+set CAMERA_SAT_IMG=hdmap_0.png
+set HD_MAP=""
+
+:: SET DETECTION AD IGNORE ZONES
+set DET_ZONE_IM_VEHICLES=%var_camera_ip%_detection_zone_im.yml
+set DET_ZONE_FNED_VEHICLES=%var_camera_ip%_detection_zone.yml
+set IGNORE_AREA_VEHICLES=""
+
+set DET_ZONE_IM_PEDESTRIANS=%var_camera_ip%_detection_zone_im.yml
+set DET_ZONE_FNED_PEDESTRIANS=%var_camera_ip%_detection_zone.yml
+:: TODO: 生成行人忽略区域
+set IGNORE_AREA_PEDESTRIANS=""
+
+:: SET CROP VALUES FOR DETECTION HERE IF NEEDED
+:: TODO: 设置裁剪区域
+set CROP_X1=0
+set CROP_Y1=0
+set CROP_X2=4096
+set CROP_Y2=2160
+
+set IMG_DIR=%SOURCE_FOLDER%/%var_video_name%/img
+set OUTPUT_DIR=%SOURCE_FOLDER%/%var_video_name%/output
+
+set DET_DIR=%OUTPUT_DIR%/det/csv
+
+set MODE_VEHICLES=vehicles
+set DYNAMIC_MODEL_VEHICLES=BM2
+set LABEL_REPLACE_VEHICLES=car
+set OUTPUT_VEHICLES_DIR=%OUTPUT_DIR%/%MODE_VEHICLES%
+set DET_ASSO_VEHICLES_DIR=%OUTPUT_VEHICLES_DIR%/det_association/csv
+set TRAJ_VEHICLES_DIR=%OUTPUT_VEHICLES_DIR%/traj/csv
+set TRACK_MERGE_VEHICLES=%OUTPUT_VEHICLES_DIR%/det_association/%NAME%_tracks_merge.csv
+set TRAJ_VEHICLES=%TRAJ_VEHICLES_DIR%/%NAME%_traj.csv
+set TRAJ_INSPECT_VEHICLES_DIR=%OUTPUT_VEHICLES_DIR%/traj_inspect/csv
+set TRAJ_INSPECT_VEHICLES=%TRAJ_INSPECT_VEHICLES_DIR%/%NAME%_traj.csv
+
+set MODE_PEDESTRIANS=pedestrians
+set DYNAMIC_MODEL_PEDESTRIANS=CV
+set LABEL_REPLACE_PEDESTRIANS=person
+set OUTPUT_PEDESTRIANS_DIR=%OUTPUT_DIR%/%MODE_PEDESTRIANS%
+set DET_ASSO_PEDESTRIANS_DIR=%OUTPUT_PEDESTRIANS_DIR%/det_association/csv
+set TRAJ_PEDESTRIANS_DIR=%OUTPUT_PEDESTRIANS_DIR%/traj/csv
+set TRACK_MERGE_PEDESTRIANS=%OUTPUT_PEDESTRIANS_DIR%/det_association/%NAME%_tracks_merge.csv
+set TRAJ_PEDESTRIANS=%TRAJ_PEDESTRIANS_DIR%/%NAME%_traj.csv
+set TRAJ_INSPECT_PEDESTRIANS_DIR=%OUTPUT_PEDESTRIANS_DIR%/traj_inspect/csv
+set TRAJ_INSPECT_PEDESTRIANS=%TRAJ_INSPECT_PEDESTRIANS_DIR%/%NAME%_traj.csv
+
+:: ##################################################################
+:: # EXTRACTING FRAMES FROM VIDEO
+:: ##################################################################
+python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3
+
 
 exit /b 0
+:: =============================================================================
+:: </批量处理视频文件 >
+:: =============================================================================
 
 :: End of File
