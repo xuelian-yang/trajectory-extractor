@@ -9,6 +9,11 @@ python traj_ext/hd_map/run_generate_HD_map.py ^
     -image %data_dir%/hdmap_calib/%str_ip%.png ^
     -camera %data_dir%/alaco_cameras/%str_ip%_cfg.yml ^
     -detection_zone %data_dir%/alaco_cameras/%str_ip%_detection_zone.yml
+
+set data_dir=E:/Github/trajectory-extractor/test_alaco
+python traj_ext/hd_map/run_generate_HD_map.py ^
+    -image %data_dir%/hdmap_calib/hdmap_0.png ^
+    -camera %data_dir%/alaco_cameras/hdmap_0_cfg.yml
 """
 
 # import the necessary packages
