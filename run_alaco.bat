@@ -204,6 +204,7 @@ python traj_ext/visualization/run_inspect_traj.py ^
             -start_time %START_TIME% ^
             -export
 
+:skip_for_debug
 :: ###################################################################
 :: # VISUALIZATION
 :: ###################################################################
@@ -218,9 +219,7 @@ python traj_ext/visualization/run_visualizer.py ^
             -output_dir %OUTPUT_DIR% ^
             -export 1
 
-::             -hd_map %SOURCE_FOLDER%/%HD_MAP% ^
-
-:skip_for_debug
+goto :end_of_commands
 :: ###################################################################
 :: 结果保存为 gif
 :: ###################################################################
@@ -228,6 +227,7 @@ python util_create_gif.py ^
   --case_name %CASE_NAME% ^
   --gif_name %GIF_NAME%
 
+:end_of_commands
 :: =============================================================================
 :: 计时结束
 :: call timer.cmd Stop
