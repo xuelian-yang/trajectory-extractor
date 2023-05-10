@@ -186,6 +186,9 @@ def main():
     argparser.add_argument('--labelme_json', default='feature_points_10.10.145.231.json')
     args = argparser.parse_args()
 
+    for item in vars(args):
+        logger.info(f'{item:20s} : {getattr(args, item)}')
+
     ws = WorkSpace()
     save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
     if not osp.exists(save_dir):

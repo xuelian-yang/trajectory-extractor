@@ -1,18 +1,36 @@
+# -*- coding: utf-8 -*-
+
+"""
+python traj_ext/hd_map/run_generate_HD_map.py
+"""
+
 # import the necessary packages
 import argparse
 import cv2
+import logging
 import sys
 import os
+import os.path as osp
+import platform
 import numpy as np
+from termcolor import colored
 import time
 import copy
 from scipy.optimize import linear_sum_assignment
 import configparser
 
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.tracker import cameramodel
 from traj_ext.utils import det_zone
 
 from traj_ext.hd_map.HD_map import HDmap
+
+from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
+from configs.workspace import WorkSpace
+
+logger = logging.getLogger(__name__)
+isWindows = (platform.system() == "Windows")
+
 
 def click(event, x, y, flags, param ):
 
@@ -76,6 +94,13 @@ def main():
     parser.add_argument('-output_folder', dest="output_folder_path", type=str, help='Path of the folder to save HD map', default='');
 
     args = parser.parse_args();
+    for item in vars(args):
+        logger.info(f'{item:20s} : {getattr(args, item)}')
+
+    ws = WorkSpace()
+    save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
+    if not osp.exists(save_dir):
+        os.makedirs(save_dir)
 
     # Print instructions
     print("############################################################")
@@ -267,9 +292,17 @@ def main():
     print("Program Exit\n")
     print("############################################################\n")
 
+
 if __name__ == '__main__':
+    time_beg = time.time()
+    this_filename = osp.basename(__file__)
+    setup_log(this_filename)
 
     try:
         main()
     except KeyboardInterrupt:
         print('\nCancelled by user. Bye!')
+
+    time_end = time.time()
+    logger.warning(f'{this_filename} elapsed {time_end - time_beg} seconds')
+    print(colored(f'{this_filename} elapsed {time_end - time_beg} seconds', 'yellow'))
