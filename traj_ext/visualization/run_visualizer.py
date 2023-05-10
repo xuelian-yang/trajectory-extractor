@@ -276,6 +276,8 @@ def run_visualize_traj(config):
             temp_h, temp_w, _ = my_img.shape
             if temp_h > win_h or temp_w > win_w:
                 cv2.resizeWindow(str(win_name), win_w, win_h)
+            if len(windows) == 0:
+                cv2.moveWindow(str(win_name), win_w, 0)
         # Show image
         cv2.imshow(str(win_name), my_img)
 

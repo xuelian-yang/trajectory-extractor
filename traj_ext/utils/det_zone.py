@@ -6,6 +6,7 @@
 # @Github:
 
 import csv
+import copy
 import logging
 import numpy as np
 import cv2
@@ -185,8 +186,11 @@ class DetZoneImage(object):
         pt_img_np = pt_img_np.astype(int);
 
         cv2.polylines(image,[pt_img_np],True,color, thickness=thickness)
+        image_copy = copy.deepcopy(image)
+        cv2.fillPoly(image_copy, [pt_img_np], (0, 64, 64))
 
-        return image;
+        # return image;
+        return cv2.addWeighted(image, 0.7, image_copy, 0.3, 0)
 
     @classmethod
     def read_from_yml(cls, input_path):
