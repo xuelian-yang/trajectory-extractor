@@ -2,6 +2,12 @@
 
 """
 python traj_ext/hd_map/run_generate_HD_map.py
+
+set data_dir=E:/Github/trajectory-extractor/test_alaco
+python traj_ext/hd_map/run_generate_HD_map.py ^
+    -image %data_dir%/hdmap_calib/10.10.145.232.png ^
+    -camera %data_dir%/alaco_cameras/10.10.145.232_cfg.yml ^
+    -detection_zone %data_dir%/alaco_cameras/10.10.145.232_detection_zone.yml
 """
 
 # import the necessary packages
@@ -128,7 +134,10 @@ def main():
         det_zone_FNED = det_zone.DetZoneFNED.read_from_yml(args.detection_zone_path);
 
     # Create windows
-    cv2.namedWindow("image_camera")
+    win_name = "image_camera"
+    cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(win_name, 1920, 1080)
+    cv2.moveWindow(win_name, 1920, 0)
     cv2.namedWindow("image_sat")
 
     name = args.image_path.split('/')[-1].split('.')[0];

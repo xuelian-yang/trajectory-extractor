@@ -14,6 +14,7 @@ python traj_ext/visualization/run_visualizer.py ^
   -camera_sat_img test_alaco/alaco_W92_2023-05-09_14_18_54/hdmap_0.png ^
   -det_zone_fned test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_detection_zone.yml ^
   -output_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output ^
+  -hd_map test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232.csv ^
   -export 1
 """
 
