@@ -4,10 +4,11 @@
 python traj_ext/hd_map/run_generate_HD_map.py
 
 set data_dir=E:/Github/trajectory-extractor/test_alaco
+set str_ip=10.10.145.231
 python traj_ext/hd_map/run_generate_HD_map.py ^
-    -image %data_dir%/hdmap_calib/10.10.145.232.png ^
-    -camera %data_dir%/alaco_cameras/10.10.145.232_cfg.yml ^
-    -detection_zone %data_dir%/alaco_cameras/10.10.145.232_detection_zone.yml
+    -image %data_dir%/hdmap_calib/%str_ip%.png ^
+    -camera %data_dir%/alaco_cameras/%str_ip%_cfg.yml ^
+    -detection_zone %data_dir%/alaco_cameras/%str_ip%_detection_zone.yml
 """
 
 # import the necessary packages
@@ -140,7 +141,8 @@ def main():
     cv2.moveWindow(win_name, 1920, 0)
     cv2.namedWindow("image_sat")
 
-    name = args.image_path.split('/')[-1].split('.')[0];
+    # name = args.image_path.split('/')[-1].split('.')[0];
+    name = osp.splitext(osp.basename(args.image_path))[0]
 
     if os.path.isfile(args.hd_map_path):
         hd_map = HDmap.from_csv(args.hd_map_path);
