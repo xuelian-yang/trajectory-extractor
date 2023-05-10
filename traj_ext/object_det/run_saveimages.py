@@ -36,6 +36,7 @@ def main():
     parser.add_argument('-c', dest="crop", nargs = '*', type=int, help='Cropping values: x1 y1 x2 y2' );
     parser.add_argument('-t', dest="time_max_s",  type=int, help='Stop extracting images after this time in seconds');
     parser.add_argument('--skip', default=1,  type=int, help='Save one frame every skip frame' );
+    parser.add_argument('--max_frame_num', default=500, type=int, help='Only parse first max_frame_num frames')
     args = parser.parse_args()
 
     ##########################################################
@@ -120,6 +121,8 @@ def main():
             print('Frame Number: {} {}'.format(frame_number, name_image))
 
         frame_number = frame_number + 1;
+        if frame_number > args.max_frame_num:
+            break
 
     print('\n**** Job is done ****\n{} frames saved at {}\n'.format(frame_number, output_path_img))
 
