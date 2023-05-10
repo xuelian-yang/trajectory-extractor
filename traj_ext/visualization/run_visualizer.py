@@ -4,6 +4,19 @@
 # @Last Modified by:   Aubrey
 # @Last Modified time: 2019-10-27 22:29:12
 
+"""
+python traj_ext/visualization/run_visualizer.py ^
+  -traj test_alaco/alaco_W92_2023-05-09_14_18_54/output/vehicles/traj_inspect/csv/W92_2023-05-09_14_18_54_traj.csv ^
+  -traj_person test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians/traj_inspect/csv/W92_2023-05-09_14_18_54_traj.csv ^
+  -image_dir test_alaco/alaco_W92_2023-05-09_14_18_54/img ^
+  -camera_street test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_cfg.yml ^
+  -camera_sat test_alaco/alaco_W92_2023-05-09_14_18_54/hdmap_0_cfg.yml ^
+  -camera_sat_img test_alaco/alaco_W92_2023-05-09_14_18_54/hdmap_0.png ^
+  -det_zone_fned test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_detection_zone.yml ^
+  -output_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output ^
+  -export 1
+"""
+
 import copy
 import cv2
 import argparse
@@ -47,6 +60,7 @@ from configs.workspace import WorkSpace
 
 logger = logging.getLogger(__name__)
 isWindows = (platform.system() == "Windows")
+enable_show_image_without_large_window = True  # 避免过大的图像显示窗口
 
 
 def main(args_input):
@@ -290,8 +304,10 @@ def run_visualize_traj(config):
             image_current_traj, _ = run_inspect_traj.display_traj_on_image(time_ms, cam_model, image_current_traj, traj_person_list, det_zone_FNED_list = [det_zone_FNED], no_label = config.no_label);
 
             # Show image
-            # cv2.imshow('Trajectory visualizer', image_current_traj)
-            show_image_without_large_window('Trajectory visualizer', image_current_traj)
+            if not enable_show_image_without_large_window:
+                cv2.imshow('Trajectory visualizer', image_current_traj)
+            else:
+                show_image_without_large_window('Trajectory visualizer', image_current_traj)
 
             if sat_view_available:
                 if sat_view_enable:
@@ -299,8 +315,10 @@ def run_visualize_traj(config):
                     image_sat_current, _ = run_inspect_traj.display_traj_on_image(time_ms, cam_model_sat, image_sat, traj_list, det_zone_FNED_list = [det_zone_FNED], no_label = config.no_label);
                     image_sat_current, _ = run_inspect_traj.display_traj_on_image(time_ms, cam_model_sat, image_sat_current, traj_person_list, det_zone_FNED_list = [det_zone_FNED], no_label = config.no_label)
                     # Show image
-                    # cv2.imshow('Sat View merged', image_sat_current)
-                    show_image_without_large_window('Sat View merged', image_sat_current)
+                    if not enable_show_image_without_large_window:
+                        cv2.imshow('Sat View merged', image_sat_current)
+                    else:
+                        show_image_without_large_window('Sat View merged', image_sat_current)
 
                     image_sat_concat = EKF_utils.concatenate_images(image_current_traj, image_sat_current)
 
@@ -310,12 +328,16 @@ def run_visualize_traj(config):
                 image_hdmap_current, _ = run_inspect_traj.display_traj_on_image(time_ms, cam_model_hdmap, image_hdmap_current, traj_person_list, det_zone_FNED_list = [det_zone_FNED], no_label = config.no_label, velocity_label=True);
 
                 # Show image
-                # cv2.imshow('HD map view merged', image_hdmap_current)
-                show_image_without_large_window('HD map view merged', image_hdmap_current)
+                if not enable_show_image_without_large_window:
+                    cv2.imshow('HD map view merged', image_hdmap_current)
+                else:
+                    show_image_without_large_window('HD map view merged', image_hdmap_current)
 
                 image_concat = EKF_utils.concatenate_images(image_current_traj, image_hdmap_current)
-                # cv2.imshow('View: Camera and HD map', image_concat)
-                show_image_without_large_window('View: Camera and HD map', image_concat)
+                if not enable_show_image_without_large_window:
+                    cv2.imshow('View: Camera and HD map', image_concat)
+                else:
+                    show_image_without_large_window('View: Camera and HD map', image_concat)
 
             if export_mode:
                 img_annoted_name = img_file_name.split('.')[0] + '_annotated.png';
