@@ -5,6 +5,7 @@
 # @Last Modified time: 2019-10-27 22:29:12
 
 """
+# v0
 python traj_ext/visualization/run_visualizer.py ^
   -traj test_alaco/alaco_W92_2023-05-09_14_18_54/output/vehicles/traj_inspect/csv/W92_2023-05-09_14_18_54_traj.csv ^
   -traj_person test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians/traj_inspect/csv/W92_2023-05-09_14_18_54_traj.csv ^
@@ -15,6 +16,19 @@ python traj_ext/visualization/run_visualizer.py ^
   -det_zone_fned test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_detection_zone.yml ^
   -output_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output ^
   -hd_map test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232.csv ^
+  -export 1
+
+# v1
+python traj_ext/visualization/run_visualizer.py ^
+  -traj test_alaco/alaco_W92_2023-05-09_14_18_54/output/vehicles/traj_inspect/csv/W92_2023-05-09_14_18_54_traj.csv ^
+  -traj_person test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians/traj_inspect/csv/W92_2023-05-09_14_18_54_traj.csv ^
+  -image_dir test_alaco/alaco_W92_2023-05-09_14_18_54/img ^
+  -camera_street test_alaco/alaco_cameras/10.10.145.232_cfg.yml ^
+  -camera_sat test_alaco/alaco_cameras/hdmap_0_cfg.yml ^
+  -camera_sat_img test_alaco/alaco_cameras/hdmap_0.png ^
+  -det_zone_fned test_alaco/alaco_cameras/10.10.145.232_detection_zone.yml ^
+  -output_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output ^
+  -hd_map test_alaco/hdmap_calib/hdmap_0_hd_map.csv ^
   -export 1
 """
 
