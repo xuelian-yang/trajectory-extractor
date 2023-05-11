@@ -17,10 +17,10 @@ call :header_warn %message%
 set time_sh_start=%time%
 
 :: =============================================================================
-REM set VIDEOS_DIR=test_alaco/temp_video/multi-stream-reocrds/2023-05-09_14_18_54
-REM set VIDEOS_DIR=test_alaco/temp_video/multi-stream-reocrds/2023-04-25_17_23_30
-REM set VIDEOS_DIR=test_alaco/temp_video/multi-stream-reocrds/2023-04-25_10_03_47
-set VIDEOS_DIR=test_alaco/temp_video/multi-stream-reocrds/2023-04-25_17_34_16
+for /f "delims=" %%a in (test_alaco/video_dir.txt) do (
+    set VIDEOS_DIR=%%a
+)
+call :text_warn "%VIDEOS_DIR%"
 
 :: set camera_name=""
 :: 注意: for 命令括号内不可有 :: 注释，但可用 REM
@@ -205,10 +205,10 @@ set TRAJ_INSPECT_PEDESTRIANS=%TRAJ_INSPECT_PEDESTRIANS_DIR%/%NAME%_traj.csv
 :: ##################################################################
 :: # EXTRACTING FRAMES FROM VIDEO
 :: ##################################################################
-:: python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --max_frame_num 60000
-python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --frame_start 3500 --max_frame_num 4450
-python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --frame_start 5050 --max_frame_num 5450
-python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --frame_start 6125 --max_frame_num 6875
+python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --max_frame_num 30
+REM python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --frame_start 3500 --max_frame_num 4450
+REM python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --frame_start 5050 --max_frame_num 5450
+REM python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --frame_start 6125 --max_frame_num 6875
 
 :: exit /b 0
 
