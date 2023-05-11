@@ -198,7 +198,8 @@ python traj_ext/visualization/run_visualizer.py\
             -camera_sat_img ${SOURCE_FOLDER}/${CAMERA_SAT_IMG}\
             -det_zone_fned ${SOURCE_FOLDER}/${DET_ZONE_FNED_VEHICLES}\
             -hd_map ${SOURCE_FOLDER}/${HD_MAP}\
-            -output_dir ${OUTPUT_DIR}
+            -output_dir ${OUTPUT_DIR} \
+            -export 1
 
 # '
 
