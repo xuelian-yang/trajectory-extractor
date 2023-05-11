@@ -3,7 +3,7 @@
 """
 手动设置检测区域.
 
-set home_path=E:/Github/trajectory-extractor/traj_ext/camera_calib/calib_file/brest
+set home_path=traj_ext/camera_calib/calib_file/brest
 python traj_ext/camera_calib/run_detection_zone.py ^
   -camera_street %home_path%/brest_area1_street_cfg.yml ^
   -image_street %home_path%/brest_area1_street.jpg ^
@@ -11,8 +11,8 @@ python traj_ext/camera_calib/run_detection_zone.py ^
   -image_sat %home_path%/brest_area1_sat.png ^
   -output_name brest
 
-set home_path=E:/Github/trajectory-extractor/test_alaco/hdmap_calib
-set temp_path=E:/Github/trajectory-extractor/temp
+set home_path=test_alaco/hdmap_calib
+set temp_path=temp
 python traj_ext/camera_calib/run_detection_zone.py ^
   -camera_street %temp_path%/run_calib_manual/10.10.145.231_cfg.yml ^
   -image_street %home_path%/10.10.145.231.png ^

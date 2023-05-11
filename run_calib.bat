@@ -15,9 +15,9 @@ call :header_warn %message%
 :: call timer.cmd Start
 set time_sh_start=%time%
 :: =============================================================================
-set alaco_temp_dir=E:/Github/trajectory-extractor/temp/calib_feature_parser
-set alaco_input_dir=E:/Github/trajectory-extractor/test_alaco/hdmap_calib
-set temp_path=E:/Github/trajectory-extractor/temp
+set alaco_temp_dir=temp/calib_feature_parser
+set alaco_input_dir=test_alaco/hdmap_calib
+set temp_path=temp
 set json_ext=.json
 set png_ext=.png
 

@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 
 """
-cd traj_ext/camera_calib/
-
-set home_path=E:/Github/trajectory-extractor/traj_ext/camera_calib/calib_file/brest
+set home_path=traj_ext/camera_calib/calib_file/brest
 python traj_ext/camera_calib/run_show_calib.py ^
   --camera_calib %home_path%/brest_area1_street_cfg.yml ^
   --image %home_path%/brest_area1_street.jpg ^
   --detection_zone %home_path%/brest_area1_detection_zone.yml
 
-set home_path=E:/Github/trajectory-extractor/test_alaco/hdmap_calib
-set temp_path=E:/Github/trajectory-extractor/temp
+set home_path=test_alaco/hdmap_calib
+set temp_path=temp
 python traj_ext/camera_calib/run_show_calib.py ^
   --camera_calib %temp_path%/run_calib_manual/10.10.145.231_cfg.yml ^
   --image %home_path%/10.10.145.231.png ^

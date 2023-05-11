@@ -4,7 +4,6 @@
 将 labelme 标注的图像特征点坐标 与 QGIS 导出的经纬度坐标进行组合, 生成 trajectory-extractor 格式的标定输入.
 
 conda activate traj
-cd E:/Github/trajectory-extractor
 
 python traj_ext/camera_calib/calib_feature_parser.py --labelme_json feature_points_10.10.145.231.json
 python traj_ext/camera_calib/calib_feature_parser.py --labelme_json feature_points_hdmap_0.json

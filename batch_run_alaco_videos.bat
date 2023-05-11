@@ -17,10 +17,10 @@ call :header_warn %message%
 set time_sh_start=%time%
 
 :: =============================================================================
-REM set VIDEOS_DIR=E:/Github/trajectory-extractor/test_alaco/temp_video/multi-stream-reocrds/2023-05-09_14_18_54
-REM set VIDEOS_DIR=E:/Github/trajectory-extractor/test_alaco/temp_video/multi-stream-reocrds/2023-04-25_17_23_30
-REM set VIDEOS_DIR=E:/Github/trajectory-extractor/test_alaco/temp_video/multi-stream-reocrds/2023-04-25_10_03_47
-set VIDEOS_DIR=E:/Github/trajectory-extractor/test_alaco/temp_video/multi-stream-reocrds/2023-04-25_17_34_16
+REM set VIDEOS_DIR=test_alaco/temp_video/multi-stream-reocrds/2023-05-09_14_18_54
+REM set VIDEOS_DIR=test_alaco/temp_video/multi-stream-reocrds/2023-04-25_17_23_30
+REM set VIDEOS_DIR=test_alaco/temp_video/multi-stream-reocrds/2023-04-25_10_03_47
+set VIDEOS_DIR=test_alaco/temp_video/multi-stream-reocrds/2023-04-25_17_34_16
 
 :: set camera_name=""
 :: 注意: for 命令括号内不可有 :: 注释，但可用 REM

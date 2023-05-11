@@ -21,8 +21,8 @@
 python traj_ext/camera_calib/run_calib_manual.py -init
 
 python traj_ext/camera_calib/run_calib_manual.py ^
-  -calib_points E:/Github/trajectory-extractor/temp/calib_feature_parser/feature_points_10.10.145.231.json_camera_calib_manual_latlon.csv ^
-  -image E:/Github/trajectory-extractor/test_alaco/hdmap_calib/10.10.145.231.png
+  -calib_points temp/calib_feature_parser/feature_points_10.10.145.231.json_camera_calib_manual_latlon.csv ^
+  -image test_alaco/hdmap_calib/10.10.145.231.png
 """
 
 import cv2
