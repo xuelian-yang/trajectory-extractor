@@ -36,7 +36,7 @@ def images_to_gif(args, save_dir):
     if not osp.exists(images_dir):
         d_print_r(f'path not exist: {images_dir}')
         raise ValueError(f'path not exist: {images_dir}')
-    d_print_b(f'loading {images_dir}')
+    logging.info(f'loading {images_dir}')
 
     files = sorted(glob.glob(f'{images_dir}/*.png'))
 
@@ -45,14 +45,16 @@ def images_to_gif(args, save_dir):
         frames.append(new_frame)
 
     gif_name = osp.join(save_dir, args.gif_name)
-    d_print_b(f'saving {gif_name}')
+    logging.info(f'saving {gif_name}')
+
+    # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#gif-saving
     frames[0].save(
         gif_name,
         format='GIF',
         append_images=frames[1:],
-        save_all=True,
-        duration=100,
-        loop=0,
+        save_all=True,  # all frames of the image will be saved.
+        duration=500,  # The display duration of each frame of the multiframe gif, in milliseconds. 
+        loop=0,  # Integer number of times the GIF should loop. 0 means that it will loop forever.
         comment=b'trajectory-extractor')
 
 

@@ -46,7 +46,7 @@ from traj_ext.camera_calib import calib_utils
 from traj_ext.object_det import det_object
 from traj_ext.utils import det_zone
 
-from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
+from common.util import setup_log, get_name
 from configs.workspace import WorkSpace
 
 logger = logging.getLogger(__name__)
@@ -297,14 +297,16 @@ def main():
         '-output_name', dest="output_name",
         default='',
         help='Name of the output files')
-    args = argparser.parse_args();
+    args = argparser.parse_args()
+    for item in vars(args):
+        logger.info(f'{item:20s} : {getattr(args, item)}')
 
     ws = WorkSpace()
     save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
     if not osp.exists(save_dir):
         os.makedirs(save_dir)
 
-    #Run camera calibration
+    # Run camera calibration
     run_detection_zone(args.cam_model_street_path, args.image_street_path, args.cam_model_sat_path, args.image_sat_path, args.output_name, save_dir)
 
 
