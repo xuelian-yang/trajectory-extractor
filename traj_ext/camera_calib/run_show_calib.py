@@ -7,12 +7,10 @@ python traj_ext/camera_calib/run_show_calib.py ^
   --image %home_path%/brest_area1_street.jpg ^
   --detection_zone %home_path%/brest_area1_detection_zone.yml
 
-set home_path=test_alaco/hdmap_calib
-set temp_path=temp
 python traj_ext/camera_calib/run_show_calib.py ^
-  --camera_calib %temp_path%/run_calib_manual/10.10.145.231_cfg.yml ^
-  --image %home_path%/10.10.145.231.png ^
-  --detection_zone %temp_path%/run_detection_zone/10.10.145.231_detection_zone.yml
+  --camera_calib test_alaco/alaco_cameras/10.10.145.231_cfg.yml ^
+  --image test_alaco/hdmap_calib/10.10.145.231.png ^
+  --detection_zone test_alaco/alaco_cameras/10.10.145.231_detection_zone.yml
 """
 
 # import the necessary packages

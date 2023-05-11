@@ -11,14 +11,13 @@ python traj_ext/camera_calib/run_detection_zone.py ^
   -image_sat %home_path%/brest_area1_sat.png ^
   -output_name brest
 
-set home_path=test_alaco/hdmap_calib
-set temp_path=temp
+set camera_ip=10.10.145.232
 python traj_ext/camera_calib/run_detection_zone.py ^
-  -camera_street %temp_path%/run_calib_manual/10.10.145.231_cfg.yml ^
-  -image_street %home_path%/10.10.145.231.png ^
-  -camera_sat %temp_path%/run_calib_manual/hdmap_0_cfg.yml ^
-  -image_sat %home_path%/hdmap_0.png ^
-  -output_name 10.10.145.231
+  -camera_street test_alaco/alaco_cameras/%camera_ip%_cfg.yml ^
+  -image_street test_alaco/hdmap_calib/%camera_ip%.png ^
+  -camera_sat test_alaco/alaco_cameras/hdmap_0_cfg.yml ^
+  -image_sat test_alaco/hdmap_calib/hdmap_0.png ^
+  -output_name %camera_ip%
 """
 
 # import the necessary packages
