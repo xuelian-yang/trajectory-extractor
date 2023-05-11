@@ -109,10 +109,10 @@ function alaco_video_demo() {
   ##################################################################
   # EXTRACTING FRAMES FROM VIDEO
   ##################################################################
-
+  python traj_ext/object_det/run_saveimages.py ${VIDEO_NAME} -o ${SOURCE_FOLDER}/${var_video_name} --skip 3 --max_frame_num 60
   # python traj_ext/object_det/run_saveimages.py ${VIDEO_NAME} -o ${SOURCE_FOLDER}/${var_video_name} --skip 3 --max_frame_num 60000
   # python traj_ext/object_det/run_saveimages.py ${VIDEO_NAME} -o ${SOURCE_FOLDER}/${var_video_name} --skip 3 --frame_start 3500 --max_frame_num 4450
-  python traj_ext/object_det/run_saveimages.py ${VIDEO_NAME} -o ${SOURCE_FOLDER}/${var_video_name} --skip 3 --frame_start 5050 --max_frame_num 5450
+  # python traj_ext/object_det/run_saveimages.py ${VIDEO_NAME} -o ${SOURCE_FOLDER}/${var_video_name} --skip 3 --frame_start 5050 --max_frame_num 5450
   # python traj_ext/object_det/run_saveimages.py ${VIDEO_NAME} -o ${SOURCE_FOLDER}/${var_video_name} --skip 3 --frame_start 6125 --max_frame_num 6875
 
 
@@ -261,8 +261,21 @@ function alaco_video_demo() {
 # ============================================================================ #
 # 逐个处理视频
 # ============================================================================ #
+# 读取视频路径
+file_video_dir="test_alaco/video_dir.txt"
+while read line; do
+  if [[ ${#line} -lt 1 ]]; then
+    text_warn "skip empty line"
+    continue
+  fi
+  if [[ ${line} =~ ^#.* ]]; then
+    text_warn "ignore ${line}"
+    continue
+  fi
+  VIDEOS_DIR=${line}
+done < ${file_video_dir}
 
-VIDEOS_DIR="test_alaco/temp_video/multi-stream-reocrds/2023-04-25_17_34_16"
+# 读取视频文件名
 video_names_list="test_alaco/video_list.txt"
 while read line; do
   # echo ${line}
