@@ -55,7 +55,7 @@ python traj_ext/camera_calib/run_show_calib.py \
   --detection_zone ${temp_path}"/run_detection_zone/"${png_name_cam}"_detection_zone.yml"
 
 # ============================================================================ #
-# </run alaco >
+# </run calib >
 # ============================================================================ #
 
 function text_warn() {
