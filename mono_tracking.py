@@ -29,13 +29,40 @@ from termcolor import colored
 from threading import Thread
 import time
 
-sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
+FILE_PATH = osp.abspath(osp.dirname(__file__))
+sys.path.append(osp.join(FILE_PATH, '../..'))
 from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
 from configs.workspace import WorkSpace
+
+from traj_ext.object_det.det_object import DetObject
+ROOT_DIR_MASKRCNN = osp.abspath(osp.join(FILE_PATH, './traj_ext/object_det/mask_rcnn/Mask_RCNN'))
+sys.path.append(ROOT_DIR_MASKRCNN)  # To find local version of the library
+from mrcnn import utils
+import mrcnn.model as modellib
+from mrcnn import visualize
+
+# Import COCO config
+from samples.coco import coco
 
 logger = logging.getLogger(__name__)
 isWindows = (platform.system() == "Windows")
 
+
+class_names = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
+               'bus', 'train', 'truck', 'boat', 'traffic light',
+               'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird',
+               'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear',
+               'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie',
+               'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
+               'kite', 'baseball bat', 'baseball glove', 'skateboard',
+               'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup',
+               'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+               'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
+               'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed',
+               'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote',
+               'keyboard', 'cell phone', 'microwave', 'oven', 'toaster',
+               'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
+               'teddy bear', 'hair drier', 'toothbrush']
 
 class LoadStreams:
     """
@@ -43,7 +70,7 @@ class LoadStreams:
     ----------
     yolov8_tracking/yolov8/ultralytics/yolo/data/dataloaders/stream_loaders.py
     """
-    def __init__(self, sources, vid_stride=1):
+    def __init__(self, sources, vid_stride, max_frame):
         self.vid_stride = vid_stride
         assert isinstance(sources, list) and len(sources) > 0 and isinstance(sources[0], str)
 
@@ -61,6 +88,9 @@ class LoadStreams:
             h = int(self.caps[i].get(cv2.CAP_PROP_FRAME_HEIGHT))
             fps = self.caps[i].get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
             self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
+            if self.is_mp4 and self.frames[i] > max_frame:
+                self.frames[i] = max_frame
+                d_print(f'>> {self.frames[i]}')
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
             _, self.imgs[i] = self.caps[i].read()  # guarantee first frame
@@ -95,39 +125,91 @@ class LoadStreams:
                 cv2.destroyAllWindows()
                 raise StopIteration
         else:
-            has_new_frame = False
             for i, cap in enumerate(self.caps):
                 cap.grab()
+                self.num_frames[i] += 1
                 success, im = cap.retrieve()
-                if success:
+                if success and self.num_frames[i] < self.frames[i]:
                     self.imgs[i] = im
-                    self.num_frames[i] += 1
-                    has_new_frame = True
-                    if self.num_frames[i] % 50 == 0:
-                        logging.info(f'  --> mp4 stream {i} cap {self.num_frames[i]:6d} frames {im.shape}')
                 elif self.num_frames[i] >= self.frames[i] - 2:
                     logging.warning(f'stop iteration {self.count} with video [{i}]')
                     cap.release()
-            if not has_new_frame:
-                logging.warning(f'no new frame data, StopIteration {self.count}')
-                cv2.destroyAllWindows()
-                raise StopIteration
+                    logging.warning(f'no new frame data, StopIteration {self.count}')
+                    cv2.destroyAllWindows()
+                    raise StopIteration
         return self.sources, im
 
     def __len__(self):
         return len(self.sources)  # 1E12 frames = 32 streams at 30 FPS for 30 years
 
+
+class InferenceConfig(coco.CocoConfig):
+    # Set batch size to 1 since we'll be running inference on
+    # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
+    GPU_COUNT = 1
+    IMAGES_PER_GPU = 1
+
+
+def load_model():
+    MODEL_DIR = os.path.join(ROOT_DIR_MASKRCNN, "logs")
+    COCO_MODEL_PATH = os.path.join(ROOT_DIR_MASKRCNN, "mask_rcnn_coco.h5")
+    if not os.path.exists(COCO_MODEL_PATH):
+        utils.download_trained_weights(COCO_MODEL_PATH)
+    config_inf = InferenceConfig()
+    config_inf.display()
+    model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=config_inf)
+    model.load_weights(COCO_MODEL_PATH, by_name=True)
+    return model
+
+
 class MonoTracking:
-    def __init__(self, video_input, video_stride, save_dir):
+    def __init__(self, video_input, video_stride, max_frame, save_dir):
         self.save_dir = save_dir
         self.video_input = video_input
         self.video_stride = video_stride
+        self.max_frame = max_frame
 
     def run(self):
-        dataset = LoadStreams([self.video_input], self.video_stride)
-        for frame_idx, batch in enumerate(dataset):
-            d_print_b(f'{frame_idx:4d} ..')
+        dataset = LoadStreams([self.video_input], self.video_stride, self.max_frame)
+        model = load_model()
 
+        win_name = 'mono_tracking'
+        cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(str(win_name), 1920, 1080)
+        cv2.moveWindow(str(win_name), 1920, 0)
+
+        for frame_idx, (_, im) in enumerate(dataset):
+            d_print_b(f'{frame_idx:4d} {im.shape}')
+            results = model.detect([im], verbose=1)
+            r = results[0]
+            d_print_y(f'r: {type(r)} {r}')
+            det_object_list = []
+            for det_id in range(0,len(r['rois'])):
+
+                # Extract info
+                det_2Dbox = np.array([r['rois'][det_id][0], r['rois'][det_id][1], r['rois'][det_id][2], r['rois'][det_id][3]], dtype= np.int16)
+                det_2Dbox.shape = (4,1)
+
+                confidence = r['scores'][det_id]
+
+                label_id = r['class_ids'][det_id]
+                label = class_names[label_id]
+
+                det_mask = r['masks'][:,:,det_id]
+                height = det_mask.shape[0]
+                width = det_mask.shape[1]
+
+                # Create det object
+                det_object = DetObject(det_id, label, det_2Dbox, confidence,
+                                       image_width = width, image_height = height,
+                                       det_mask = det_mask,
+                                       frame_name = f'frame-{frame_idx:04d}',
+                                       frame_id = frame_idx)
+                im = det_object.display_on_image(im)
+                # det_object_list.append(det_object)
+            cv2.imshow(str(win_name), im)
+            if cv2.waitKey(30) == ord('q'):  # 1 millisecond
+                exit()
 
 def main():
     parser = argparse.ArgumentParser(
@@ -139,7 +221,7 @@ def main():
                         default=1,
                         help='Save one frame every skip frame')
     parser.add_argument('--max_frame_num', type=int,
-                        default=500,
+                        default=10,
                         help='Only parse first max_frame_num frames')
     parser.add_argument('--frame_start', type=int,
                         default=0,
@@ -155,7 +237,7 @@ def main():
     if not osp.exists(save_dir):
         os.makedirs(save_dir)
 
-    mono = MonoTracking(args.video_path, args.skip, save_dir)
+    mono = MonoTracking(args.video_path, args.skip, args.max_frame_num, save_dir)
     mono.run()
 
 
