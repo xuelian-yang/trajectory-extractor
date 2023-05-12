@@ -205,7 +205,7 @@ set TRAJ_INSPECT_PEDESTRIANS=%TRAJ_INSPECT_PEDESTRIANS_DIR%/%NAME%_traj.csv
 :: ##################################################################
 :: # EXTRACTING FRAMES FROM VIDEO
 :: ##################################################################
-python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3
+python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --max_frame_num 100
 REM python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --max_frame_num 30
 REM python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --frame_start 3500 --max_frame_num 4450
 REM python traj_ext/object_det/run_saveimages.py %VIDEO_NAME% -o %SOURCE_FOLDER%/%var_video_name% --skip 3 --frame_start 5050 --max_frame_num 5450

@@ -168,21 +168,22 @@ class MonoTracking:
         self.video_input = video_input
         self.video_stride = video_stride
         self.max_frame = max_frame
+        self.display = False
 
     def run(self):
         dataset = LoadStreams([self.video_input], self.video_stride, self.max_frame)
         model = load_model()
 
         win_name = 'mono_tracking'
-        cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(str(win_name), 1920, 1080)
-        cv2.moveWindow(str(win_name), 1920, 0)
+        if self.display:
+            cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL)
+            cv2.resizeWindow(str(win_name), 1920, 1080)
+            cv2.moveWindow(str(win_name), 1920, 0)
 
         for frame_idx, (_, im) in enumerate(dataset):
             d_print_b(f'{frame_idx:4d} {im.shape}')
             results = model.detect([im], verbose=1)
             r = results[0]
-            d_print_y(f'r: {type(r)} {r}')
             det_object_list = []
             for det_id in range(0,len(r['rois'])):
 
@@ -207,9 +208,12 @@ class MonoTracking:
                                        frame_id = frame_idx)
                 im = det_object.display_on_image(im)
                 # det_object_list.append(det_object)
-            cv2.imshow(str(win_name), im)
-            if cv2.waitKey(30) == ord('q'):  # 1 millisecond
-                exit()
+                cv2.imwrite(osp.join(self.save_dir, f'frame-{frame_idx:04d}.jpg'), im)
+            if self.display:
+                cv2.imshow(str(win_name), im)
+                if cv2.waitKey(30) == ord('q'):  # 1 millisecond
+                    exit()
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -221,7 +225,7 @@ def main():
                         default=1,
                         help='Save one frame every skip frame')
     parser.add_argument('--max_frame_num', type=int,
-                        default=10,
+                        default=5,
                         help='Only parse first max_frame_num frames')
     parser.add_argument('--frame_start', type=int,
                         default=0,

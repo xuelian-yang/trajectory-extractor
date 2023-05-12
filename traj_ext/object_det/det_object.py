@@ -532,6 +532,11 @@ class DetObject(object):
 
         return pt_center;
 
+    def get_top_left_det_2Dbox(self):
+        x_1 = int(self.det_2Dbox[1])
+        y_1 = int(self.det_2Dbox[0])
+        return (x_1, y_1)
+
     def display_on_image(self, image, color = None, color_text = (0, 0, 255), no_label = False, no_2Dbox = False, no_mask = False, custom_text = None, track_id_text=False):
         """Display the detection on an image
 
@@ -582,7 +587,9 @@ class DetObject(object):
             elif not no_label:
                 text = '{} {}'.format(self.det_id, self.label)
 
-            image = cv2.putText(image, text, self.get_center_det_2Dbox(), cv2.FONT_HERSHEY_COMPLEX, 0.5, color_text, 1)
+            text += f' conf: {self.confidence:.4f}'
+
+            image = cv2.putText(image, text, self.get_top_left_det_2Dbox(), cv2.FONT_HERSHEY_COMPLEX, 0.5, color_text, 1)
 
         # Display mask
         if not (self.det_mask is None):
