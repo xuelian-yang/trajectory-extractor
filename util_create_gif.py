@@ -53,7 +53,7 @@ def images_to_gif(args, save_dir):
         format='GIF',
         append_images=frames[1:],
         save_all=True,  # all frames of the image will be saved.
-        duration=500,  # The display duration of each frame of the multiframe gif, in milliseconds. 
+        duration=150,  # The display duration of each frame of the multiframe gif, in milliseconds. 
         loop=0,  # Integer number of times the GIF should loop. 0 means that it will loop forever.
         comment=b'trajectory-extractor')
 
