@@ -4,6 +4,8 @@ This is a python3 implementation of a framework to extract vehicle trajectories 
 
 ![Gif Demo](images/brest_demo.gif)
 
+![ALACO W91 Gif Demo](images/alaco_traj_demo_10.10.145.231_alaco_cameras_W91_2023-04-25_17_23_31.gif)
+
 **DISCLAIMER: This project is not actively maintained and the code is provided as is.**
 
 ## Setup
