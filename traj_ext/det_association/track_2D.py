@@ -4,6 +4,7 @@
 #
 #################################################################################
 
+import logging
 import numpy as np
 import os
 import sys
@@ -80,6 +81,7 @@ class Track2D(object):
             track_2D_list (TYPE): Description
             det_asso_folder_path (TYPE): Description
         """
+        logging.info(f'Track2D::export_det_asso_csv( {cls}, {list_img_name}, {track_2D_list}, {det_asso_folder_path} )')
         print('Track2D: Saving detection association in: {}'.format(det_asso_folder_path));
 
         total_frame_index = len(list_img_name);

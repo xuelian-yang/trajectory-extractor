@@ -2,6 +2,7 @@
 import copy
 import cv2
 import argparse
+import logging
 import os
 import subprocess
 import math;
@@ -22,6 +23,9 @@ from traj_ext.postprocess_track.time_ignore import TimeIgnore
 
 from traj_ext.utils import det_zone
 from traj_ext.utils import mathutil
+
+logger = logging.getLogger(__name__)
+
 
 def click_detection(event, x, y, flags, param):
     """Click callback to enable / disbale specific detections by clicking on it
@@ -115,7 +119,9 @@ def main():
     parser.add_argument('-label_replace', dest="label_replace", type=str, help='Label used to replace labels', default ='car' );
 
     args = parser.parse_args()
-
+    logger.warning(f'argparse.ArgumentParser:')
+    for item in vars(args):
+        logger.info(f'{item:20s} : {getattr(args, item)}')
 
     print('\nShow detections: {}'.format(args.label_list))
     print('Replace by: {}\n'.format(args.label_replace))

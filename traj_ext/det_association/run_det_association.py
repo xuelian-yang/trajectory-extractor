@@ -1,5 +1,18 @@
 # -*- coding: utf-8 -*-
 
+"""
+对 run_detections_csv.py 生成的单帧结果进行匹配跟踪.
+
+python traj_ext/det_association/run_det_association.py ^
+  -image_dir test_alaco/alaco_W92_2023-05-09_14_18_54/img ^
+  -output_dir  test_alaco/alaco_W92_2023-05-09_14_18_54/output/vehicles ^
+  -det_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output/det/csv ^
+  -ignore_detection_area test_alaco/alaco_W92_2023-05-09_14_18_54/ ^
+  -det_zone_im test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_detection_zone_im.yml ^
+  -mode vehicles ^
+  -no_save_images
+"""
+
 ##########################################################################################
 #
 # MEASUREMENT ASSOCIATION TO FORM TRACKS
@@ -7,7 +20,6 @@
 # Association is done based on Intersection-Over-Union between masks of successive frames
 #
 ##########################################################################################
-
 
 import os
 import sys
@@ -23,7 +35,6 @@ import configparser
 import argparse
 from shutil import copyfile
 import pickle
-
 
 import cv2
 import matplotlib
@@ -41,7 +52,6 @@ from traj_ext.det_association import track_2D
 
 from traj_ext.object_det.det_object import DetObject
 from traj_ext.object_det import det_object as det_object_file
-
 
 from traj_ext.postprocess_track import trajutil
 
@@ -153,8 +163,12 @@ def main(args_input):
             vars(args).update(data_json)
 
     vars(args).pop('config_json', None);
+    logger.warning(f'argparse.ArgumentParser:')
+    for item in vars(args):
+        logger.info(f'{item:20s} : {getattr(args, item)}')
 
     return run_det_association(args);
+
 
 def run_det_association(config):
 
@@ -262,6 +276,13 @@ def run_det_association(config):
 
         # Filter detections
         for det_object in list(det_object_list):
+            '''
+            1. 按类别剔除目标:
+              1.1. vehicles    模式下仅处理 ['car', 'bus', truck', 'motorcycle']
+              1.2. pedestrians 模式下仅处理 ['person', 'bicycle']
+            2. 按检测质量剔除非 good
+            3. 按检测区域剔除包围盒中心点不在检测区域内的
+            '''
             # Delete the detection that are not in the label_list
             if not (det_object.label in label_list):
                 det_object_list.remove(det_object);
@@ -279,6 +300,7 @@ def run_det_association(config):
                         det_object_list.remove(det_object);
 
 
+        # 剔除与 ignore 区域 IOU 超过阈值的目标 TODO: 此处双重 for 循环是否有必要
         # Ignore det object that overlap with ignore area
         for det_object_ignore_area in det_object_ignore_area_list:
             for det_object in list(det_object_list):
@@ -289,6 +311,7 @@ def run_det_association(config):
                         det_object_list.remove(det_object);
                         print("Frame: {} Removing: because overlap:{} with det_ignore area".format(frame_index, det_object.det_id))
 
+        # 基于 IOU 的关联匹配
         track_det_list = tk_overlap.push_detection(det_object_list, frame);
 
         status_str = '{} {}/{} Time: {}'.format(image_name, frame_index, total_frame_index, round((time.time() - start_time), 5 ));
@@ -296,6 +319,7 @@ def run_det_association(config):
         # print('\n ===> Execution ', frame_index, ' Time', round((time.time() - start_time), 5 ), '\n' )
 
         # Add annotation on Image:
+        # 显示跟踪成功的目标，并以红色显示忽悠区域及检测收缩区域的目标
         if save_images or show_images:
             cv_image = cv2.imread(os.path.join(config.image_dir, image_name));
 
@@ -340,6 +364,7 @@ def run_det_association(config):
     TrackMerge.save_track_merge_csv(tracks_merge_path, tk_match_list);
 
     return True;
+
 
 if __name__ == '__main__':
     time_beg = time.time()

@@ -39,6 +39,9 @@ def main():
     parser.add_argument('--max_frame_num', default=500, type=int, help='Only parse first max_frame_num frames')
     parser.add_argument('--frame_start', default=0, type=int, help='skip first frame_start frames')
     args = parser.parse_args()
+    logger.warning(f'argparse.ArgumentParser:')
+    for item in vars(args):
+        logger.info(f'{item:20s} : {getattr(args, item)}')
 
     ##########################################################
     # Crop mode

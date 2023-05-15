@@ -59,15 +59,16 @@ def images_to_gif(args, save_dir):
 
 
 def main():
-    argparser = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(
         description='image sequence to gif')
-    argparser.add_argument('-c', '--img_seq_dir', type=str,
+    parser.add_argument('-c', '--img_seq_dir', type=str,
                            required=True,
                            help='image sequence path for loading')
-    argparser.add_argument('-g', '--gif_name', type=str,
+    parser.add_argument('-g', '--gif_name', type=str,
                            required=True,
                            help='gif name for saving')
-    args = argparser.parse_args()
+    args = parser.parse_args()
+    logger.warning(f'argparse.ArgumentParser:')
     for item in vars(args):
         logger.info(f'{item:20s} : {getattr(args, item)}')
 

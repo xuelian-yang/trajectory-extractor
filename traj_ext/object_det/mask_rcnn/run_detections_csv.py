@@ -141,8 +141,12 @@ def main(args_input):
             vars(args).update(data_json)
 
     vars(args).pop('config_json', None);
+    logger.warning(f'argparse.ArgumentParser:')
+    for item in vars(args):
+        logger.info(f'{item:20s} : {getattr(args, item)}')
 
     run_detections_csv(args);
+
 
 def run_detections_csv(config):
 
@@ -219,6 +223,7 @@ def run_detections_csv(config):
     except Exception as e:
         print(e);
 
+    n_img_detected = 0
     for frame_index, file_name in enumerate(list_file):
 
         #Check for frame limit:
@@ -248,6 +253,7 @@ def run_detections_csv(config):
 
         #Run detection
         results = model.detect([image], verbose=1)
+        n_img_detected += 1
         r = results[0]
 
         # List of result
@@ -311,6 +317,8 @@ def run_detections_csv(config):
 
                 if key == ord('q'):
                     break;
+    logger.warning(f'run_detections_csv.py processed {n_img_detected} frames')
+
 
 if __name__ == '__main__':
     time_beg = time.time()

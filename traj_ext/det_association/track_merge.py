@@ -9,6 +9,7 @@ import os
 import os.path as osp
 import sys
 
+import logging
 import random
 import math
 import numpy as np
@@ -56,6 +57,7 @@ class TrackMerge(object):
             path_to_csv (string): Path to the csv
             tk_match_list (list): List of tracks id that should be merged
         """
+        logging.info(f'TrackMerge::save_track_merge_csv( {cls}, {path_to_csv}, {tk_match_list} )')
 
         # Write the merging list intot a csv
         with open(path_to_csv, 'w') as csvFile:
@@ -201,12 +203,18 @@ class TrackMerge(object):
 
     @classmethod
     def run_merge_tracks(cls, tracker_list, list_img_file, img_folder_path,  det_zone_IM, display = False, debug_track_list=[]):
-
-        match_list = [];
+        logging.info(f'TrackMerge::run_merge_tracks('
+                     f'\n\tcls={cls},'
+                     f'\n\ttracker_list={tracker_list},'
+                     f'\n\tlist_img_file={list_img_file},'
+                     f'\n\timg_folder_path={img_folder_path},'
+                     f'\n\tdet_zone_IM={det_zone_IM},'
+                     f'\n\tdisplay={display},'
+                     f'\n\tdebug_track_list={debug_track_list} )')
+        # TODO: 此函数运行非常慢，需要仔细分析性能瓶颈
+        match_list = []
 
         for break_index, tk in enumerate(list(tracker_list)):
-
-
             frame_index = tk.get_last_frame_index();
             det_obj = tk.get_det_frame_index(frame_index);
             if det_obj is None:

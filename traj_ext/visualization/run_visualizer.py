@@ -168,6 +168,7 @@ def main(args_input):
             vars(args).update(data_json)
 
     vars(args).pop('config_json', None)
+    logger.warning(f'argparse.ArgumentParser:')
     for item in vars(args):
         logger.info(f'{item:20s} : {getattr(args, item)}')
     run_visualize_traj(args)
