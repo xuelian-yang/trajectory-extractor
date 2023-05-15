@@ -169,8 +169,13 @@ def main(args_input):
 
     vars(args).pop('config_json', None)
     logger.warning(f'argparse.ArgumentParser:')
+    char_concat = '^' if isWindows else '\\'
+    __text = f'\npython {osp.basename(__file__)} {char_concat}\n'
     for item in vars(args):
+        __text += f'  -{item} {getattr(args, item)} {char_concat}\n'
         logger.info(f'{item:20s} : {getattr(args, item)}')
+    logger.info(f'{__text}')
+
     run_visualize_traj(args)
 
 

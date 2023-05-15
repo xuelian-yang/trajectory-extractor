@@ -14,6 +14,7 @@
 ##########################################################################################
 
 import numpy as np
+import platform
 import time
 import cv2
 import copy
@@ -61,6 +62,7 @@ from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_pr
 from configs.workspace import WorkSpace
 
 logger = logging.getLogger(__name__)
+isWindows = (platform.system() == "Windows")
 
 
 def get_tk_postprocess_in_list(tk_postprocess_list, id):
@@ -200,8 +202,12 @@ def main(args_input):
 
     vars(args).pop('config_json', None);
     logger.warning(f'argparse.ArgumentParser:')
+    char_concat = '^' if isWindows else '\\'
+    __text = f'\npython {osp.basename(__file__)} {char_concat}\n'
     for item in vars(args):
+        __text += f'  -{item} {getattr(args, item)} {char_concat}\n'
         logger.info(f'{item:20s} : {getattr(args, item)}')
+    logger.info(f'{__text}')
 
     return run_postprocess_tracker(args);
 

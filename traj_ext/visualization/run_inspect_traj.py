@@ -12,6 +12,7 @@ import subprocess
 import math;
 import sys
 import json
+import platform
 
 import sys
 import os.path as osp
@@ -46,7 +47,7 @@ from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_pr
 from configs.workspace import WorkSpace
 
 logger = logging.getLogger(__name__)
-
+isWindows = (platform.system() == "Windows")
 
 def export_trajectories(list_times_ms, traj_list, list_traj_ignore_list=[[]],time_ignore_list=[], det_zone_ignore_list=[], name_sequence='', traj_saving_dir='', location_name='', date='', start_time='', delta_ms=100):
 
@@ -459,8 +460,12 @@ def main(args_input):
 
     vars(args).pop('config_json', None);
     logger.warning(f'argparse.ArgumentParser:')
+    char_concat = '^' if isWindows else '\\'
+    __text = f'\npython {osp.basename(__file__)} {char_concat}\n'
     for item in vars(args):
+        __text += f'  -{item} {getattr(args, item)} {char_concat}\n'
         logger.info(f'{item:20s} : {getattr(args, item)}')
+    logger.info(f'{__text}')
 
     run_inspect_traj(args);
 

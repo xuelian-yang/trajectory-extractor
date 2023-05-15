@@ -68,12 +68,18 @@ bash run_trajectory_extraction.sh
 
 ```bash
 # 1. EXTRACTING FRAMES FROM VIDEO
-python traj_ext/object_det/run_saveimages.py
+python traj_ext/object_det/run_saveimages.py ^
+  test_alaco/alaco_W92_2023-05-09_14_18_54/W92_2023-05-09_14_18_54.mp4 ^
+  -skip 3
 
 # 2. OBJECT DETECTION
-python traj_ext/object_det/mask_rcnn/run_detections_csv.py
+python traj_ext/object_det/mask_rcnn/run_detections_csv.py ^
+  -image_dir test_alaco/alaco_W92_2023-05-09_14_18_54/img ^
+  -output_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output ^
+  -crop_x1y1x2y2 [0, 0, 4096, 2160] ^
+  -no_save_images
 
-# 3. VEHICLES
+# 3. VEHICLES - 参数参考 PEDESTRIAN
 # 3.1 Det association
 python traj_ext/det_association/run_det_association.py
 
@@ -83,14 +89,70 @@ python traj_ext/visualization/run_inspect_traj.py
 
 # 4. PEDESTRIAN
 # 4.1 Det association
-python traj_ext/det_association/run_det_association.py
+python traj_ext/det_association/run_det_association.py ^
+  -image_dir test_alaco/alaco_W92_2023-05-09_14_18_54/img ^
+  -output_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians ^
+  -det_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output/det/csv ^
+  -ignore_detection_area test_alaco/alaco_W92_2023-05-09_14_18_54/ ^
+  -det_zone_im test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_detection_zone_im.yml ^
+  -mode pedestrians ^
+  -no_save_images
+
 
 # 4.2 Process
-python traj_ext/postprocess_track/run_postprocess.py
-python traj_ext/visualization/run_inspect_traj.py
+python traj_ext/postprocess_track/run_postprocess.py ^
+  -image_dir test_alaco/alaco_W92_2023-05-09_14_18_54/img ^
+  -output_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians ^
+  -det_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output/det/csv ^
+  -det_asso_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians/det_association/csv ^
+  -track_merge test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians/det_association/W92_2023-05-09_14_18_54_tracks_merge.csv ^
+  -camera_street test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_cfg.yml ^
+  -camera_sat test_alaco/alaco_W92_2023-05-09_14_18_54/hdmap_0_cfg.yml ^
+  -camera_sat_img test_alaco/alaco_W92_2023-05-09_14_18_54/hdmap_0.png ^
+  -det_zone_fned test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_detection_zone.yml ^
+  -delta_ms 100 ^
+  -location_name alaco_W92 ^
+  -dynamic_model CV ^
+  -date 20230509 ^
+  -start_time 1418 ^
+  -no_save_images
+
+python traj_ext/visualization/run_inspect_traj.py ^
+  -traj test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians/traj/csv/W92_2023-05-09_14_18_54_traj.csv ^
+  -image_dir test_alaco/alaco_W92_2023-05-09_14_18_54/img ^
+  -det_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output/det/csv ^
+  -det_asso_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians/det_association/csv ^
+  -track_merge test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians/det_association/W92_2023-05-09_14_18_54_tracks_merge.csv ^
+  -camera_street test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_cfg.yml ^
+  -camera_sat test_alaco/alaco_W92_2023-05-09_14_18_54/hdmap_0_cfg.yml ^
+  -camera_sat_img test_alaco/alaco_W92_2023-05-09_14_18_54/hdmap_0.png ^
+  -det_zone_fned test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_detection_zone.yml ^
+  -label_replace person ^
+  -output_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians ^
+  -hd_map test_alaco/alaco_W92_2023-05-09_14_18_54/hdmap_0_hd_map.csv ^
+  -delta_ms 100 ^
+  -location_name alaco_W92 ^
+  -date 20230509 ^
+  -start_time 1418 ^
+  -export
 
 # 5. VISUALIZATION
-python traj_ext/visualization/run_visualizer.py
+python traj_ext/visualization/run_visualizer.py ^
+  -traj test_alaco/alaco_W92_2023-05-09_14_18_54/output/vehicles/traj_inspect/csv/W92_2023-05-09_14_18_54_traj.csv ^
+  -traj_person test_alaco/alaco_W92_2023-05-09_14_18_54/output/pedestrians/traj_inspect/csv/W92_2023-05-09_14_18_54_traj.csv ^
+  -image_dir test_alaco/alaco_W92_2023-05-09_14_18_54/img ^
+  -camera_street test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_cfg.yml ^
+  -camera_sat test_alaco/alaco_W92_2023-05-09_14_18_54/hdmap_0_cfg.yml ^
+  -camera_sat_img test_alaco/alaco_W92_2023-05-09_14_18_54/hdmap_0.png ^
+  -det_zone_fned test_alaco/alaco_W92_2023-05-09_14_18_54/10.10.145.232_detection_zone.yml ^
+  -hd_map test_alaco/alaco_W92_2023-05-09_14_18_54/hdmap_0_hd_map.csv ^
+  -output_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output ^
+  -export 1
+
+# 6. Image Sequences to gif
+python util_create_gif.py ^
+  -img_seq_dir test_alaco/alaco_W92_2023-05-09_14_18_54/output/visualizer/img_concat ^
+  -gif_name alaco_traj_demo_alaco_W92_2023-05-09_14_18_54_.gif
 ```
 
 ### 遇到的问题

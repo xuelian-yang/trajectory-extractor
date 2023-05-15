@@ -69,8 +69,12 @@ def main():
                            help='gif name for saving')
     args = parser.parse_args()
     logger.warning(f'argparse.ArgumentParser:')
+    char_concat = '^' if isWindows else '\\'
+    __text = f'\npython {osp.basename(__file__)} {char_concat}\n'
     for item in vars(args):
+        __text += f'  -{item} {getattr(args, item)} {char_concat}\n'
         logger.info(f'{item:20s} : {getattr(args, item)}')
+    logger.info(f'{__text}')
 
     ws = WorkSpace()
     save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
