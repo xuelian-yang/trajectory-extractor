@@ -81,7 +81,11 @@ class Track2D(object):
             track_2D_list (TYPE): Description
             det_asso_folder_path (TYPE): Description
         """
-        logging.info(f'Track2D::export_det_asso_csv( {cls}, {list_img_name}, {track_2D_list}, {det_asso_folder_path} )')
+        logging.info(f'Track2D::export_det_asso_csv('
+                     f'\n\tcls={cls},'
+                     f'\n\tlist_img_name=({len(list_img_name)}, {list_img_name[0]}),'
+                     f'\n\ttrack_2D_list=({len(track_2D_list)}, {track_2D_list[0]},'
+                     f'\n\tdet_asso_folder_path={det_asso_folder_path} )')
         print('Track2D: Saving detection association in: {}'.format(det_asso_folder_path));
 
         total_frame_index = len(list_img_name);

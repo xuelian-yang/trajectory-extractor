@@ -62,7 +62,7 @@ import logging
 import os.path as osp
 import sys
 from termcolor import colored
-from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
+from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y, itti_timer
 from configs.workspace import WorkSpace
 
 logger = logging.getLogger(__name__)
@@ -164,12 +164,16 @@ def main(args_input):
 
     vars(args).pop('config_json', None);
     logger.warning(f'argparse.ArgumentParser:')
+    __text = ''
     for item in vars(args):
+        __text += f'  -{item} {getattr(args, item)} ^\n'
         logger.info(f'{item:20s} : {getattr(args, item)}')
+    logger.info(f'{__text}')
 
     return run_det_association(args);
 
 
+@itti_timer
 def run_det_association(config):
 
     # Create output folder

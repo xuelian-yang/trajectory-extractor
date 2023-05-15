@@ -5,6 +5,10 @@
 # @Email: clausse.aubrey@gmail.com
 # @Github:
 
+"""
+用于 One-ID, 合并跟踪的 ID
+"""
+
 import os
 import os.path as osp
 import sys
@@ -27,11 +31,14 @@ import matplotlib
 import matplotlib.pyplot as plt
 from scipy.optimize import linear_sum_assignment
 
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.det_association import multiple_overlap_association
 from traj_ext.object_det import det_object
 
 from traj_ext.utils import cfgutil
 from traj_ext.utils import det_zone
+
+from common.util import itti_debug, itti_timer
 
 class TrackMerge(object):
     """Merge incomplete tracks based on a visual tracker: CSRT tracker (OpenCV)"""
@@ -57,7 +64,7 @@ class TrackMerge(object):
             path_to_csv (string): Path to the csv
             tk_match_list (list): List of tracks id that should be merged
         """
-        logging.info(f'TrackMerge::save_track_merge_csv( {cls}, {path_to_csv}, {tk_match_list} )')
+        logging.info(f'TrackMerge::save_track_merge_csv( \n\tcls={cls}, \n\tpath_to_csv={path_to_csv}, \n\ttk_match_list={tk_match_list} )')
 
         # Write the merging list intot a csv
         with open(path_to_csv, 'w') as csvFile:
@@ -128,6 +135,7 @@ class TrackMerge(object):
     @classmethod
     def find_candidate_roi(cls, tk_end, roi, frame_index, tracker_list, tk_cand_list):
         """Find tracker candidate that match roi from the visual tracker (CRST)
+        基于 IOU 进行目标匹配
 
         Args:
             tk_end (TYPE): Original tracker
@@ -144,7 +152,6 @@ class TrackMerge(object):
             init_frame_index = tk.get_init_frame_index();
             last_frame_index = tk.get_last_frame_index();
 
-
             if init_frame_index <= frame_index and last_frame_index >= frame_index and init_frame_index >= tk_end.get_last_frame_index() - cls.PREVIOUS_HORIZON_CSRT:
 
                 if abs(frame_index - init_frame_index) <= 3 or tk.track_id in tk_cand_list:
@@ -160,8 +167,6 @@ class TrackMerge(object):
                         # print('tk: {} Init: {} End: {}'.format(tk.id, tk.init_det_index, tk.last_det_index))
                         # print('roi: {} roi_cand: {} over: {}'.format(roi_candidate, roi, over));
                         return tk;
-
-
         return None;
 
     @classmethod
@@ -176,6 +181,7 @@ class TrackMerge(object):
             image = cv2.putText(frame, text, p1, cv2.FONT_HERSHEY_COMPLEX, 0.5, color, 1)
 
     @classmethod
+    @itti_timer
     def merge_track_match(cls, match_list):
         """Merge the list of match pairs into list of track id that correspond to the same track
 
@@ -197,16 +203,15 @@ class TrackMerge(object):
 
             if new_flag:
                 new_tk_match_list.append([id_end, id_start]);
-
-
         return new_tk_match_list;
 
     @classmethod
+    @itti_timer
     def run_merge_tracks(cls, tracker_list, list_img_file, img_folder_path,  det_zone_IM, display = False, debug_track_list=[]):
         logging.info(f'TrackMerge::run_merge_tracks('
                      f'\n\tcls={cls},'
-                     f'\n\ttracker_list={tracker_list},'
-                     f'\n\tlist_img_file={list_img_file},'
+                     f'\n\ttracker_list=({len(tracker_list)}, {tracker_list[0]}),'
+                     f'\n\tlist_img_file=({len(list_img_file)}, {list_img_file[0]}),'
                      f'\n\timg_folder_path={img_folder_path},'
                      f'\n\tdet_zone_IM={det_zone_IM},'
                      f'\n\tdisplay={display},'
@@ -234,6 +239,7 @@ class TrackMerge(object):
 
                 roi = det_obj.det_2Dbox;
 
+                # 使用 TrackerCSRT 进行跟踪
                 tracker = cv2.TrackerCSRT_create();
 
                 image_name = list_img_file[frame_index];
@@ -260,7 +266,6 @@ class TrackMerge(object):
 
                     ok, bbox = tracker.update(frame)
                     if ok:
-
                         if display:
                             cls.plot_rect(frame, bbox);
 
@@ -278,7 +283,6 @@ class TrackMerge(object):
                             # print('Merge failed: tk: {} out of zone'.format(tk.track_id));
                             break;
 
-
                         tk_cand = cls.find_candidate_roi(tk, roi, frame_index, tracker_list, tk_cand_list);
                         if not (tk_cand is None):
                             # print('Merge: tk: {} tk_cand:{}'.format(tk.track_id, tk_cand.id));
@@ -291,8 +295,7 @@ class TrackMerge(object):
 
                             if tk_cand.track_id != tk.track_id:
                                 tk_cand_list.append(tk_cand.track_id);
-
-                    else:
+                    else:  # if ok:
                         # Tracking failure
                         if display:
                             cv2.putText(frame, "Tracking failure detected", (100,80), cv2.FONT_HERSHEY_SIMPLEX, 0.75,(0,0,255),2)
@@ -301,13 +304,11 @@ class TrackMerge(object):
                         break;
 
                     if display:
-
                         det_zone_IM.display_on_image(frame, thickness = 2)
 
                         cv2.imshow('frame', frame)
                         if cv2.waitKey(0) & 0xFF == ord('q'):
                             return;
-
 
                     if len(tk_cand_list) > cls.MATCHING_THRESH:
                         break;
@@ -319,7 +320,6 @@ class TrackMerge(object):
                     if tk_cand_id != tk.track_id:
                         print('Merge: tk: {} tk_cand:{}'.format(tk.track_id, tk_cand_id));
                         match_list.append([tk.track_id, tk_cand_id])
-
 
         # Merge the list of pairs into list of tracks id that should be merged
         tk_match_list = cls.merge_track_match(match_list);
