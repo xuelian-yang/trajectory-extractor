@@ -6,7 +6,7 @@
 # @Author      :   Xuelian.Yang
 # @Contact     :   Xuelian.Yang@geely.com
 # @LastEditors :   Xuelian.Yang
-# @Example     :   python mono_tracking.py
+# @Example     :   python mono_tracking.py --show_images --img_scale 0.2
 
 # here put the import lib
 import argparse
@@ -19,6 +19,7 @@ import json
 import logging
 import math
 from matplotlib import pyplot as plt
+from multiprocessing.dummy import Pool as ThreadPool
 import numpy as np
 import os
 import os.path as osp
@@ -26,11 +27,25 @@ import pandas as pd
 import platform
 import sys
 from termcolor import colored
+import threading
 from threading import Thread
 import time
 
 FILE_PATH = osp.abspath(osp.dirname(__file__))
 sys.path.append(osp.join(FILE_PATH, '../..'))
+
+from traj_ext.box3D_fitting import Box3D_utils
+
+from traj_ext.object_det.mask_rcnn import detect_utils
+from traj_ext.tracker import cameramodel
+
+from traj_ext.utils import cfgutil
+from traj_ext.utils.mathutil import *
+
+from traj_ext.object_det import det_object
+from traj_ext.utils import det_zone
+from traj_ext.box3D_fitting import box3D_object
+
 from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
 from configs.workspace import WorkSpace
 
@@ -163,19 +178,33 @@ def load_model():
 
 
 class MonoTracking:
-    def __init__(self, video_input, video_stride, max_frame, save_dir):
-        self.save_dir = save_dir
-        self.video_input = video_input
-        self.video_stride = video_stride
-        self.max_frame = max_frame
-        self.display = False
+    def __init__(self, config):
+        d_print_y(f'config: {type(config)} {config}')
+        self.config = config
+        self.video_path = config.video_path
+        self.skip = config.skip
+        self.max_frame = config.max_frame
+        self.show_images = config.show_images
+        self.output_dir = config.output_dir
 
     def run(self):
-        dataset = LoadStreams([self.video_input], self.video_stride, self.max_frame)
+        dataset = LoadStreams([self.video_path], self.skip, self.max_frame)
         model = load_model()
 
+        ##########################################################
+        # Camera Parameters
+        ##########################################################
+        cam_model_1 = cameramodel.CameraModel.read_from_yml(self.config.camera_model);
+        cam_scale_factor = self.config.img_scale;
+        if cam_scale_factor < 0:
+            print('[ERROR]: Image scale factor < 0: {}'.format(cam_scale_factor))
+        cam_model_1.apply_scale_factor(cam_scale_factor,cam_scale_factor);
+        # Create pool of thead
+        pool = ThreadPool(50)
+        type_3DBox_list = box3D_object.Type3DBoxStruct.default_3DBox_list()
+
         win_name = 'mono_tracking'
-        if self.display:
+        if self.show_images:
             cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL)
             cv2.resizeWindow(str(win_name), 1920, 1080)
             cv2.moveWindow(str(win_name), 1920, 0)
@@ -185,8 +214,15 @@ class MonoTracking:
             results = model.detect([im], verbose=1)
             r = results[0]
             det_object_list = []
-            for det_id in range(0,len(r['rois'])):
 
+            # 在缩放的图像上进行航向角拟合
+            im_1 = cv2.resize(im, None, fx=self.config.img_scale, fy=self.config.img_scale, interpolation = cv2.INTER_CUBIC)
+            im_current_1 = copy.copy(im_1)
+            im_size_1 = (im_1.shape[0], im_1.shape[1])
+            array_inputs = []
+
+            for det_id in range(0, len(r['rois'])):
+                # 解析检测结果
                 # Extract info
                 det_2Dbox = np.array([r['rois'][det_id][0], r['rois'][det_id][1], r['rois'][det_id][2], r['rois'][det_id][3]], dtype= np.int16)
                 det_2Dbox.shape = (4,1)
@@ -201,15 +237,66 @@ class MonoTracking:
                 width = det_mask.shape[1]
 
                 # Create det object
-                det_object = DetObject(det_id, label, det_2Dbox, confidence,
+                det = DetObject(det_id, label, det_2Dbox, confidence,
                                        image_width = width, image_height = height,
                                        det_mask = det_mask,
                                        frame_name = f'frame-{frame_idx:04d}',
                                        frame_id = frame_idx)
-                im = det_object.display_on_image(im)
-                # det_object_list.append(det_object)
-                cv2.imwrite(osp.join(self.save_dir, f'frame-{frame_idx:04d}.jpg'), im)
-            if self.display:
+                im = det.display_on_image(im)
+                # det_object_list.append(det)
+                for type_3DBox in type_3DBox_list:
+                    if det.label ==  type_3DBox.label:
+                        det_scaled = det.to_scale(self.config.img_scale, self.config.img_scale)
+                        input_dict = {}
+                        input_dict['mask'] = det_scaled.det_mask
+                        input_dict['roi'] = det_scaled.det_2Dbox
+                        input_dict['det_id'] = det_scaled.det_id
+                        input_dict['cam_model'] = cam_model_1
+                        input_dict['im_size'] =  im_size_1
+                        input_dict['box_size'] = type_3DBox.box3D_lwh
+                        array_inputs.append(input_dict)
+
+
+            # Run the array of inputs through the pool of workers
+            print("Thread alive: {}".format(threading.active_count()))
+            not_done = True
+            while(not_done):
+                try:
+                    results = pool.map(Box3D_utils.find_3Dbox_multithread, array_inputs)
+                    not_done = False
+                except Exception as e:
+                    print(e)
+                    not_done = True
+
+            box3D_list = []
+            for result in results:
+                box3D_list.append(result['box_3D'])
+
+            for result in results:
+                # Get result:
+                box3D_result = result['box_3D']
+                mask_1 = result['mask']
+
+                # Display box on image
+                box3D_result.display_on_image(im_current_1, cam_model_1)
+
+                mask_box_1 = box3D_result.create_mask(cam_model_1, im_size_1)
+
+                o_1, mo_1, mo_1_b = Box3D_utils.overlap_mask(mask_1, mask_box_1)
+                print("Overlap total: {}".format(o_1))
+
+                # Do not plot the 3D box if overlap < 70 %
+                if box3D_result.percent_overlap < 0.5:
+                    im_current_1 = det_object.draw_mask(im_current_1, mask_box_1, (255,0,0))
+                    im_current_1 = det_object.draw_mask(im_current_1, mask_1, (255,0,0))
+                else:
+                    im_current_1 = det_object.draw_mask(im_current_1, mask_box_1, (0,0,255))
+                    im_current_1 = det_object.draw_mask(im_current_1, mask_1, (0,255,255))
+
+            cv2.imwrite(osp.join(self.output_dir, f'frame-{frame_idx:04d}.jpg'), im)
+            cv2.imwrite(osp.join(self.output_dir, f'yaw-frame-{frame_idx:04d}.jpg'), im_current_1)
+
+            if self.show_images:
                 cv2.imshow(str(win_name), im)
                 if cv2.waitKey(30) == ord('q'):  # 1 millisecond
                     exit()
@@ -224,12 +311,24 @@ def main():
     parser.add_argument('--skip', type=int,
                         default=1,
                         help='Save one frame every skip frame')
-    parser.add_argument('--max_frame_num', type=int,
+    parser.add_argument('--max_frame', type=int,
                         default=5,
-                        help='Only parse first max_frame_num frames')
+                        help='Only parse first max_frame frames')
     parser.add_argument('--frame_start', type=int,
                         default=0,
                         help='skip first frame_start frames')
+    parser.add_argument('--show_images',
+                        action ='store_true',
+                        help='Show detections on images')
+    parser.add_argument('--output_dir', type=str,
+                        default='',
+                        help='Path of the output')
+    parser.add_argument('--camera_model', type=str,
+                        default='test_alaco/alaco_cameras/10.10.145.231_cfg.yml',
+                        help='Path to the camera model yaml')
+    parser.add_argument('--img_scale', type = float,
+                        default=0.2,
+                        help='Image scaling factor to improve speed')
     args = parser.parse_args()
     logger.warning(f'argparse.ArgumentParser:')
     char_concat = '^' if isWindows else '\\'
@@ -244,7 +343,10 @@ def main():
     if not osp.exists(save_dir):
         os.makedirs(save_dir)
 
-    mono = MonoTracking(args.video_path, args.skip, args.max_frame_num, save_dir)
+    if args.output_dir == '':
+        args.output_dir = save_dir
+
+    mono = MonoTracking(args)
     mono.run()
 
 
