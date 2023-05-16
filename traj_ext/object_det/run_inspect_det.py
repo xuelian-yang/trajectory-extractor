@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+"""
+显示检测结果
+"""
 
 import copy
 import cv2

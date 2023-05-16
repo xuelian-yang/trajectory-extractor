@@ -254,6 +254,30 @@ res = cv2.pointPolygonTest(np.array(contour, np.float32), pt, False)
   bicycle,1.2,0.8,1.6
   ```
 
+- 基于 3D 框与分割 mask 的最大化重叠率拟合航向角
+
+  ```python
+  # traj_ext/box3D_fitting/Box3D_utils.py
+  def find_3Dbox(mask, roi, cam_model, im_size, box_size_lwh):
+    ...
+    # Run optimizer: Good method: COBYLA, Powell - 基于最大化重叠率拟合航向角
+    param = opt.minimize(compute_cost_mono, p_init, method='Powell', args=(im_size, cam_model, mask, param_fix), options={'maxfev': 1000, 'disp': True})
+    ...
+  ```
+
+- 测试样例:
+
+  ```bash
+  python traj_ext/box3D_fitting/run_optim_3Dbox_mono.py ^
+    -image_dir test_dataset/brest_20190609_130424_327_334/img ^
+    -det_dir test_dataset/brest_20190609_130424_327_334/output/det/csv ^
+    -det_zone_fned test_dataset/brest_20190609_130424_327_334/output/brest_area1_detection_zone.yml ^
+    -type_box3D traj_ext/box3D_fitting/test/optim_3Dbox_mono_type_test.csv ^
+    -camera_model test_dataset/brest_20190609_130424_327_334/brest_area1_street_cfg.yml ^
+    -img_scale 0.2 ^
+    -frame_limit 10
+  ```
+
 <!-- ========= ========= =========  ========= ========= ========= -->
 
 <!--

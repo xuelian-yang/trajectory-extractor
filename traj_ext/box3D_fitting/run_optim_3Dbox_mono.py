@@ -1,5 +1,16 @@
 # -*- coding: utf-8 -*-
 
+"""
+python traj_ext/box3D_fitting/run_optim_3Dbox_mono.py ^
+  -image_dir test_dataset/brest_20190609_130424_327_334/img ^
+  -det_dir test_dataset/brest_20190609_130424_327_334/output/det/csv ^
+  -det_zone_fned test_dataset/brest_20190609_130424_327_334/output/brest_area1_detection_zone.yml ^
+  -type_box3D traj_ext/box3D_fitting/test/optim_3Dbox_mono_type_test.csv ^
+  -camera_model test_dataset/brest_20190609_130424_327_334/brest_area1_street_cfg.yml ^
+  -img_scale 0.2 ^
+  -frame_limit 10
+"""
+
 ##########################################################################################
 #
 # 3D BOX FITTING OPTIMIZER
@@ -24,6 +35,13 @@ import configparser
 from shutil import copyfile
 import json
 
+import logging
+import os.path as osp
+import platform
+import sys
+from termcolor import colored
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
+
 from traj_ext.box3D_fitting import Box3D_utils
 
 from traj_ext.object_det.mask_rcnn import detect_utils
@@ -36,7 +54,18 @@ from traj_ext.object_det import det_object
 from traj_ext.utils import det_zone
 from traj_ext.box3D_fitting import box3D_object
 
+from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
+from configs.workspace import WorkSpace
+
+logger = logging.getLogger(__name__)
+isWindows = (platform.system() == "Windows")
+
+
 def main(args_input):
+    ws = WorkSpace()
+    save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
+    if not osp.exists(save_dir):
+        os.makedirs(save_dir)
 
     # Print instructions
     print("############################################################")
@@ -74,7 +103,6 @@ def main(args_input):
         default='',
         help='Path of the output');
 
-
     argparser.add_argument(
         '-no_save_csv',
         action ='store_true',
@@ -104,6 +132,8 @@ def main(args_input):
         help='Frame limit: 0 = no limit')
 
     args = argparser.parse_args(args_input);
+    if args.output_dir == '':
+        args.output_dir = save_dir
 
     if os.path.isfile(args.config_json):
         with open(args.config_json, 'r') as f:
@@ -111,15 +141,24 @@ def main(args_input):
             vars(args).update(data_json)
 
     vars(args).pop('config_json', None);
+    logger.warning(f'argparse.ArgumentParser:')
+    char_concat = '^' if isWindows else '\\'
+    __text = f'\npython {osp.basename(__file__)} {char_concat}\n'
+    for item in vars(args):
+        __text += f'  -{item} {getattr(args, item)} {char_concat}\n'
+        logger.info(f'{item:20s} : {getattr(args, item)}')
+    logger.info(f'{__text}')
 
     return run_optim_3Dbox_mono(args);
 
 def run_optim_3Dbox_mono(config):
+    logger.info(f'run_optim_3Dbox_mono( {config} )')
 
     # Create output folder
     output_dir = config.output_dir;
     output_dir = os.path.join(output_dir, 'box3D');
     os.makedirs(output_dir, exist_ok=True)
+    logger.info(f'>>> output_dir: {output_dir}')
 
     # Save the cfg file with the output:
     try:
@@ -208,10 +247,12 @@ def run_optim_3Dbox_mono(config):
 
         # Open Image
         im_1 = cv2.imread(os.path.join(config.image_dir, image_name));
+        __shape_raw = im_1.shape
 
-        # Scale image:
+        # Scale image: >> 拟合时间与图像大小成正比
         im_1 = cv2.resize(im_1,None,fx=config.img_scale, fy=config.img_scale, interpolation = cv2.INTER_CUBIC)
 
+        logger.info(f'{__shape_raw} to {im_1.shape}')
         im_current_1 = copy.copy(im_1);
         im_size_1 = (im_1.shape[0], im_1.shape[1]);
 
@@ -265,7 +306,6 @@ def run_optim_3Dbox_mono(config):
             except Exception as e:
                 print(e);
                 not_done = True;
-
 
         box3D_list = [];
         for result in results:
@@ -323,8 +363,15 @@ def run_optim_3Dbox_mono(config):
     return True;
 
 if __name__ == '__main__':
+    time_beg = time.time()
+    this_filename = osp.basename(__file__)
+    setup_log(this_filename)
 
     try:
         main(sys.argv[1:])
     except KeyboardInterrupt:
         print('\nCancelled by user. Bye!')
+
+    time_end = time.time()
+    logger.warning(f'{this_filename} elapsed {time_end - time_beg} seconds')
+    print(colored(f'{this_filename} elapsed {time_end - time_beg} seconds', 'yellow'))

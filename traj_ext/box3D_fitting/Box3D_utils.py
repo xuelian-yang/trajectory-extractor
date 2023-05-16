@@ -206,7 +206,7 @@ def find_3Dbox(mask, roi, cam_model, im_size, box_size_lwh):
         param_fix = [z, l, w, h];
         p_init = param_opt;
 
-        # Run optimizer: Good method: COBYLA, Powell
+        # Run optimizer: Good method: COBYLA, Powell - 基于最大化重叠率拟合航向角
         param = opt.minimize(compute_cost_mono, p_init, method='Powell', args=(im_size, cam_model, mask, param_fix), options={'maxfev': 1000, 'disp': True});
         if param_min is None:
             param_min = param;
