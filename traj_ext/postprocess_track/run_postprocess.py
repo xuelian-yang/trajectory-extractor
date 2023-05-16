@@ -213,6 +213,7 @@ def main(args_input):
 
 
 def run_postprocess_tracker(config):
+    logger.info(f'run_postprocess_tracker( {config} )')
 
     # Create output folder
     output_dir = config.output_dir;

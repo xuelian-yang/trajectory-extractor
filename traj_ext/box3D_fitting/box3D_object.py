@@ -96,6 +96,7 @@ class Type3DBoxStruct():
             TYPE: List of default Type box3D
         """
 
+        # TODO: 根据子类别预设更多目标尺寸
         # Define default 3D box type:
         default_type_3DBox_list = [ Type3DBoxStruct('car', 4.0, 1.8, 1.6),\
                                     Type3DBoxStruct('bus', 12.0, 2.6, 2.5),\
@@ -111,7 +112,6 @@ class Box3DObject(object):
 
     """Object that holds a detection on an image"""
     def __init__(self, psi_rad, x, y, z, length, width, height, det_id = 0, percent_overlap = 1.0):
-
         self.psi_rad = psi_rad;         # Orientation of the box (yaw) - rad
         self.x = x;                     # Position X in F_NED of the center of the bottom side (defined implicitly by the camera paramters) - meters
         self.y = y;                     # Position Y in F_NED of the center of the bottom side (defined implicitly by the camera paramters) - meters
@@ -249,14 +249,12 @@ class Box3DObject(object):
 
         Returns:
             TYPE: Box3D object
-
         """
         result = None;
         for box3D in box3D_list:
-
             if box3D.det_id == det_id:
                 result = box3D;
-
+                break  # 提前结束循环
         return result;
 
     def check_percentoverlap(self, threshold):
@@ -268,7 +266,6 @@ class Box3DObject(object):
         Returns:
             TYPE: Description
         """
-
         return self.percent_overlap >= threshold;
 
     @classmethod
@@ -324,7 +321,7 @@ class Box3DObject(object):
 
     def create_3Dbox(self):
         """Create 3Dbox corners points in NED frame from the 3D box paramters
-
+        (航向角、底面中心点坐标、长宽高) => 八顶点
         Returns:
             TYPE: List of 3D points in NED frame
         """
@@ -386,7 +383,6 @@ class Box3DObject(object):
         Returns:
             TYPE: Point on image
         """
-
         pos_FNED = np.array([self.x, self.y, self.z]);
         pos_FNED.shape = (3,1)
 
@@ -426,7 +422,7 @@ class Box3DObject(object):
         pt_img_list = self.project_box_image(cam_model);
 
         # Create mask:
-        mask = det_object.create_mask_image(im_size, pt_img_list);
+        mask = det_object.create_mask_image(im_size, pt_img_list)  # 点集转凸包
 
         return mask;
 
@@ -450,7 +446,7 @@ class Box3DObject(object):
     # Draw the 3D Box on the Image Plane (Image from the camera)
     def display_on_image(self, image, cam_model, color = (255,0,0), thickness = 2, color_front = (255,255,0)):
         """DIsplay 3D box on image
-
+        线框形式绘制 3D 包围盒
         Args:
             image (TYPE): Image
             cam_model (TYPE): Camera model

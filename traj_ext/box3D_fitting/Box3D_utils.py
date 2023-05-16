@@ -26,7 +26,7 @@ from traj_ext.box3D_fitting import box3D_object
 def overlap_mask(mask_1, mask_2):
     """Compute overlapping score.
        Weight more the regions of mask_1 going out of the region of mask_2 in count.
-
+    计算 mask 间重叠比例
     Args:
         mask_1 (TYPE): Mask 1
         mask_2 (TYPE): Mask 2
@@ -36,24 +36,24 @@ def overlap_mask(mask_1, mask_2):
     """
 
     # Overlap Mask
-    overlap_mask = np.logical_and(mask_1 == 1, mask_2 == 1);
+    overlap_mask = np.logical_and(mask_1 == 1, mask_2 == 1)  # 交集 mask_1 & mask_2
 
     # Mask of region: Mask_i \ Overlap
-    mask_count_1 = (np.logical_and(mask_1 == 1, overlap_mask == 0));
-    mask_count_2 = (np.logical_and(mask_2 == 1, overlap_mask == 0));
+    mask_count_1 = (np.logical_and(mask_1 == 1, overlap_mask == 0))  # 补集 mask_1 & (~ mask_2)
+    mask_count_2 = (np.logical_and(mask_2 == 1, overlap_mask == 0))  # 补集 mask_2 & (~ mask_1)
 
     # Count the 1
-    count_1 =  np.count_nonzero(mask_count_1);
-    count_2 =  np.count_nonzero(mask_count_2);
+    count_1 =  np.count_nonzero(mask_count_1)  # mask_1 在交集外的像素数量
+    count_2 =  np.count_nonzero(mask_count_2)  # mask_2 在交集外的像素数量
 
     # Weight more the regions of mask_1 going out of the region of mask_2 (e.g we want mask_1 to be inside mask_2)
-    count =  4*count_1 + count_2;
+    count =  4*count_1 + count_2  # 加权计算
 
     return count, mask_count_1, mask_count_2;
 
 def compute_cost_mono(opti_params, im_size, cam_model, mask, param_fix):
     """Compute the overlap cost for mono image between
-
+    计算 3D 包围盒与图像分割 mask 间重叠率.
     Args:
         opti_params (TYPE): Description
         im_size (TYPE): Description
@@ -80,7 +80,7 @@ def compute_cost_mono(opti_params, im_size, cam_model, mask, param_fix):
     box3D = box3D_object.Box3DObject(psi_rad, x, y, z, l, w, h);
 
     # Mask box
-    mask_3Dbox = box3D.create_mask(cam_model, im_size);
+    mask_3Dbox = box3D.create_mask(cam_model, im_size)  # 转为图像上的凸包
 
     # Compute overlap score
     overlap_score, masko_1, masko_2 = overlap_mask(mask, mask_3Dbox);

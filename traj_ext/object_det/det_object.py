@@ -75,7 +75,7 @@ def draw_mask(image, mask, color = (255,0,0)):
 
 def create_mask_image(image_size, pt_img_list):
     """Create a mask from list of points
-
+    计算点集的凸包
     Args:
         im_size (TYPE): Image size (tuple)
         pt_img_list (TYPE): List of points on image
@@ -92,7 +92,6 @@ def create_mask_image(image_size, pt_img_list):
         daz = np.array([pt_img_tulpe[0], pt_img_tulpe[1]], np.int32);
         daz.shape = (1,2);
         pt_img_np = np.append(pt_img_np, daz, axis=0);
-
 
     #Find Convex Hull from the rectangles points
     hull = cv2.convexHull(pt_img_np)

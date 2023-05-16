@@ -10,6 +10,8 @@
     - [遇到的问题](#遇到的问题)
       - [@Linux](#linux)
       - [@Win10](#win10)
+- [工具](#工具)
+  - [3D 框拟合](#3d-框拟合)
 
 <!-- ========= ========= =========  ========= ========= ========= -->
 
@@ -214,6 +216,42 @@ res = cv2.pointPolygonTest(np.array(contour, np.float32), pt, False)
   #     opencv-contrib-python  4.7.0.72
   #     opencv-python          4.7.0.72
   # Win10 与 ubuntu20.04 下安装的版本都一样，但仅有 Win10 报错.
+  ```
+
+# 工具
+
+## 3D 框拟合
+
+- Box3DObject
+
+  ```python
+  # traj_ext/box3D_fitting/box3D_object.py
+  # ( 航向角、底面中心点坐标、长宽高、遮挡率、检测ID )
+  self.psi_rad = psi_rad
+  self.x = x
+  self.y = y
+  self.z = z
+  self.length = length
+  self.width = width
+  self.height = height
+
+  self.percent_overlap = percent_overlap  # Use for estimating 3D box from 2D mask
+  self.det_id = det_id
+  ```
+
+- 预设的机非人3D框对应长宽高
+
+  ```bash
+  # traj_ext/box3D_fitting/box3D_object.py
+  #     def default_3DBox_list(cls)
+  # traj_ext/box3D_fitting/test/optim_3Dbox_mono_type_test.csv
+  label,length,width,height
+  car,4.0,1.8,1.6
+  bus,12.0,2.6,2.5
+  truck,6.0,2.4,2.0
+  person,0.8,0.8,1.6
+  motorcycle,1.2,0.8,1.6
+  bicycle,1.2,0.8,1.6
   ```
 
 <!-- ========= ========= =========  ========= ========= ========= -->
