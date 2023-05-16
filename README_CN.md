@@ -6,6 +6,7 @@
 - [测试脚本](#测试脚本)
 - [工具](#工具)
   - [视频分割](#视频分割)
+  - [工具包](#工具包)
 
 <!-- ========= ========= =========  ========= ========= -->
 
@@ -45,6 +46,45 @@ E:/ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe -i W92_2023-04-25_17_23_30.mp4 
 #   https://zhuanlan.zhihu.com/p/455572544
 #     20个 FFmpeg操作命令
 ```
+
+## 工具包
+
+- [x] `traj_ext/box3D_fitting/run_optim_3Dbox_mono.py`
+  - 通过最大化 3D 框与语义分割 mask 的重叠率来拟合目标的航向角
+
+- [x] `traj_ext/camera_calib/run_calib_manual.py`
+  - 提供特征点的像素坐标、经纬度进行相机内外参标定
+
+- [x] `traj_ext/camera_calib/run_calib_stereo.py`
+  - 已知 相机1 内外参，手动选取 相机1 与 相机2 间的至少 4 对关联点，实现 相机2 的标定
+
+- [x] `traj_ext/camera_calib/run_detection_zone.py`
+  - 在前视图上手动选取 ROI 凸包，同步生成俯视图上对应凸包
+
+- [x] `traj_ext/camera_calib/run_show_calib.py`
+  - 将 ROI 凸包叠加到图像上显示
+
+- [ ] `traj_ext/det_association/run_det_association.py`
+
+- [ ] `traj_ext/hd_map/run_generate_HD_map.py`
+
+- [ ] `traj_ext/object_det/run_create_det_object.py`
+
+- [ ] `traj_ext/object_det/run_inspect_det.py`
+
+- [ ] `traj_ext/object_det/run_saveimages.py`
+
+- [ ] `traj_ext/object_det/mask_rcnn/run_detections_csv.py`
+
+- [ ] `traj_ext/postprocess_track/run_postprocess.py`
+
+- [ ] `traj_ext/utils/run_shrink_det_zone.py`
+
+- [ ] `traj_ext/visualization/run_generate_meta.py`
+
+- [ ] `traj_ext/visualization/run_inspect_traj.py`
+
+- [ ] `traj_ext/visualization/run_visualizer.py`
 
 <!-- ========= ========= =========  ========= ========= -->
 
