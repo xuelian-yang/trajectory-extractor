@@ -98,11 +98,11 @@ def main():
     ##########################################################
 
     # Record frame number
-    frame_number = 0;
+    frame_number = 0  # 解析的总帧数
+    frame_number_save = 0  # 采样保存的帧数
 
     ret = True;
     while ret:
-
         #Get time
         stime = time.time()
         time_ms = int(capture.get(cv2.CAP_PROP_POS_MSEC));
@@ -132,12 +132,13 @@ def main():
             continue
 
         # if save:
-
         if frame_number%args.skip == 0 and frame is not None:
+            frame_number_save += 1
             cv2.imwrite( output_path_img + '/' + name_image, frame );
             print('Frame Number: {} {}'.format(frame_number, name_image))
 
-    print('\n**** Job is done ****\n{} frames saved at {}\n'.format(frame_number, output_path_img))
+    print(f'\n**** Job is done ****\n({frame_number_save} / {frame_number}) frames saved at {output_path_img}\n')
+    logger.info(f'({frame_number_save} / {frame_number}) frames saved at {output_path_img!r}')
 
     capture.release()
     cv2.destroyAllWindows()

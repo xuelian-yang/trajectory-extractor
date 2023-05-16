@@ -25,26 +25,16 @@ import json
 
 import logging
 import os.path as osp
-import sys
 from termcolor import colored
 import time
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../../..')))
-
 from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
 from configs.workspace import WorkSpace
-
-logger = logging.getLogger(__name__)
-isWindows = (platform.system() == "Windows")
 
 # Root directory of the project
 FILE_PATH = os.path.abspath(os.path.dirname(__file__));
 # ROOT_DIR =  os.path.abspath(os.path.join(FILE_PATH,'../../'));
 # sys.path.append(ROOT_DIR);
-
-import sys
-import os.path as osp
-sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../../..')))
-
 from traj_ext.object_det.mask_rcnn import detect_utils
 from traj_ext.utils import cfgutil
 
@@ -60,6 +50,10 @@ from samples.coco import coco
 
 from traj_ext.object_det.det_object import DetObject
 import cv2
+
+logger = logging.getLogger(__name__)
+isWindows = (platform.system() == "Windows")
+
 
 # COCO Class names
 # Index of the class in the list is its ID. For example, to get ID of
@@ -88,12 +82,10 @@ class InferenceConfig(coco.CocoConfig):
     IMAGES_PER_GPU = 1
 
 def main(args_input):
-
     # Print instructions
     print("############################################################")
     print("Object Detector with Mask-RCNN")
     print("############################################################\n")
-
     # ##########################################################
     # # Parse Arguments
     # ##########################################################
@@ -155,7 +147,7 @@ def main(args_input):
 
 
 def run_detections_csv(config):
-
+    logger.info(f'run_detections_csv( {config} )')
     # Create output folder
     output_dir = config.output_dir;
     output_dir = os.path.join(output_dir, 'det');
@@ -323,7 +315,8 @@ def run_detections_csv(config):
 
                 if key == ord('q'):
                     break;
-    logger.warning(f'run_detections_csv.py processed {n_img_detected} frames')
+    logger.warning(f'{osp.basename(__file__)} processed {n_img_detected} frames')
+    d_print_b(f'{osp.basename(__file__)} processed {n_img_detected} frames')
 
 
 if __name__ == '__main__':

@@ -32,10 +32,20 @@ def get_name(path):
 
 
 def setup_log(filename):
+    """
+    LogRecord attributes
+        https://docs.python.org/3/library/logging.html#logrecord-attributes
+    """
     medium_format = (
         '[%(asctime)s] %(levelname)s : %(filename)s[%(lineno)d] %(funcName)s'
         ' >>> %(message)s'
     )
+    '''
+    medium_format = (
+        '[%(asctime)s] %(levelname)s : %(module)s > %(filename)s[%(lineno)d] %(funcName)s'
+        ' >>> %(message)s'
+    )
+    '''
     if not filename.lower().endswith('.log'):
         filename = filename + '.log'
     log_dir = osp.abspath(osp.join(osp.dirname(__file__), '../logs'))

@@ -63,7 +63,7 @@ import logging
 import os.path as osp
 import sys
 from termcolor import colored
-from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y, itti_timer
+from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y, itti_timer, Profile
 from configs.workspace import WorkSpace
 
 logger = logging.getLogger(__name__)
@@ -178,7 +178,7 @@ def main(args_input):
 
 @itti_timer
 def run_det_association(config):
-
+    __time_beg = time.time()
     # Create output folder
     output_dir = config.output_dir;
     output_dir = os.path.join(output_dir, 'det_association');
@@ -261,6 +261,9 @@ def run_det_association(config):
         name_prefix = trajutil.get_name_prefix(list_img_file[0]);
 
     total_frame_index = len(list_img_file);
+    __time_lap = time.time()
+    logger.info(f'>>> initialization elapsed {__time_lap - __time_beg:.3f} seconds.')
+    __time_beg = __time_lap
 
     for frame_index, image_name in enumerate(list_img_file):
 
@@ -331,9 +334,7 @@ def run_det_association(config):
             cv_image = cv2.imread(os.path.join(config.image_dir, image_name));
 
             if not (cv_image is None):
-
                 for tk in tk_overlap.tracker_list_active:
-
                     frame_index = max(0, tk_overlap.frame_index - 1);
 
                     det_object = tk.get_det_frame_index(frame_index);
@@ -346,7 +347,6 @@ def run_det_association(config):
                     if not (det_zone_IM_shrinked is None):
                         det_zone_IM_shrinked.display_on_image(cv_image, color = (0,0,255));
 
-
                 if show_images:
                     cv2.imshow('frame', cv_image)
                     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -355,6 +355,10 @@ def run_det_association(config):
                 if save_images:
                     cv2.imwrite( os.path.join(overlap_img_dir, image_name), cv_image );
 
+    __time_lap = time.time()
+    logger.info(f'>>> loading data elapsed {__time_lap - __time_beg:.3f} seconds.')
+    __time_beg = __time_lap
+
     # Get list of association tracker
     tracker_list = tk_overlap.get_tracker_list();
 
@@ -362,13 +366,25 @@ def run_det_association(config):
     if save_csv:
         track_2D.Track2D.export_det_asso_csv(list_img_file, tracker_list, overlap_csv_dir);
 
+    __time_lap = time.time()
+    logger.info(f'>>> export det association csv {__time_lap - __time_beg:.3f} seconds.')
+    __time_beg = __time_lap
+
     # Run the tracking merge:
     tk_match_list = TrackMerge.run_merge_tracks(tracker_list, list_img_file, img_folder_path, det_zone_IM_shrinked, display=show_images);
+
+    __time_lap = time.time()
+    logger.info(f'>>> merge tracks elapsed {__time_lap - __time_beg:.3f} seconds.')
+    __time_beg = __time_lap
 
     # Save the track merge
     tracks_merge_name = name_prefix + '_tracks_merge.csv'
     tracks_merge_path = os.path.join(output_dir, tracks_merge_name);
     TrackMerge.save_track_merge_csv(tracks_merge_path, tk_match_list);
+
+    __time_lap = time.time()
+    logger.info(f'>>> saving elapsed {__time_lap - __time_beg:.3f} seconds.')
+    __time_beg = __time_lap
 
     return True;
 

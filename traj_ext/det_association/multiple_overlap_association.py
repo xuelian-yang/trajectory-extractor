@@ -9,6 +9,7 @@ import os
 import sys
 
 import random
+import logging
 import math
 import numpy as np
 import colorsys
@@ -29,6 +30,11 @@ class MultipleOverlapAssociation(object):
     - Categories
     """
     def __init__(self, associate_with_label = False, threshold_overlap = 0.3, nb_frame_past_max = 10, det_zone_IM=None):
+        logging.info(f'MultipleOverlapAssociation::__init__( '
+                     f'\n\tassociate_with_label={associate_with_label},'
+                     f'\n\tthreshold_overlap={threshold_overlap},'
+                     f'\n\tnb_frame_past_max={nb_frame_past_max},'
+                     f'\n\tdet_zone_IM={det_zone_IM} )')
 
         self.tracker_list_active = []
         self.tracker_list = []
@@ -61,9 +67,7 @@ class MultipleOverlapAssociation(object):
                 cost_mat = np.zeros((nb_tk_overlap, nb_det));
 
                 for tk_ind in range(0, nb_tk_overlap):
-
                     for det_ind in det_instances:
-
                         det_object_tk = None;
 
                         # Get mask and ROI from tracker
@@ -74,7 +78,6 @@ class MultipleOverlapAssociation(object):
                                 det_object_tk = self.tracker_list_active[tk_ind].get_det_frame_index(frame_past);
 
                         if not (det_object_tk is None):
-
                             m_tk = det_object_tk.det_mask;
                             roi_tk = det_object_tk.det_2Dbox;
 
@@ -91,7 +94,6 @@ class MultipleOverlapAssociation(object):
                             cost_mat[tk_ind, det_ind] = over;
 
                         else:
-
                             # If no mask, percent overlap is 0
                             cost_mat[tk_ind, det_ind] = 0;
 
