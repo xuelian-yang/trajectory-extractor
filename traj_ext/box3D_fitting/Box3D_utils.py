@@ -261,6 +261,8 @@ def find_3Dbox_ex(mask, roi, cam_model, im_size, box_size_lwh):
     w = float(box_size_lwh[1])
     h = float(box_size_lwh[2])
     param_min = None
+    init_x, init_y = x, y
+    succ = 0
     for psi_deg in range(0,180,60):
         psi_rad = np.deg2rad(psi_deg)
 
@@ -277,18 +279,25 @@ def find_3Dbox_ex(mask, roi, cam_model, im_size, box_size_lwh):
         # Run optimizer: Good method: COBYLA, Powell - 基于最大化重叠率拟合航向角
         param = opt.minimize(compute_cost_mono, p_init, method='Powell', args=(im_size, cam_model, mask, param_fix), options={'maxfev': 1000, 'disp': True})
         if param_min is None:
+            succ += 1
+            logging.info(f'({threading.get_ident()} / {threading.active_count()}), iter={succ} param=({param.x} {param.fun} {param.success})')
             param_min = param
 
         # Keep the best values among the different run with different initial guesses
         if param.fun < param_min.fun:
+            succ += 1
+            logging.info(f'({threading.get_ident()} / {threading.active_count()}), iter={succ} param=({param.x} {param.fun} {param.success})')
             param_min = param
 
     param = param_min
+    logging.info(f'({threading.get_ident()} / {threading.active_count()}), final_iter={succ} param=({param.x} {param.fun} {param.success})')
 
     # Retrieve 3D box parameters:
     psi_rad = round(param.x[0],4)
     x = round(param.x[1],4)
     y = round(param.x[2],4)
+
+    logging.warning(f'({threading.get_ident()} / {threading.active_count()}) Powell optimizer >>> yaw = {psi_rad}, x: {init_x} => {x}, y: {init_y} => {y}')
 
     z = round(param_fix[0],4)
     l = round(param_fix[1],4)
