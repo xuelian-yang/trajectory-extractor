@@ -4,7 +4,7 @@
 # @Description :   
 # @Time        :   2023/05/17 10:58:26
 # @Author      :   Xuelian.Yang
-# @Contact     :   Xuelian.Yang@geely.com
+# @Contact     :   Xuelian.Yang@
 # @LastEditors :   Xuelian.Yang
 
 # here put the import lib
@@ -22,6 +22,8 @@ from configs.workspace import WorkSpace
 def get_parser():
     parser = argparse.ArgumentParser(
         description='Realtime mono tracking with trajectory-extractor')
+    parser.add_argument('--py_file', type=str, default=__file__,
+                        help='name of python file')
     parser.add_argument('-v', '--video_path', type=str,
                         default='test_alaco/sample/W91_2023-04-25_17_23_31.mp4',
                         help='input video path')
@@ -41,8 +43,12 @@ def get_parser():
 def main(py_file):
     args = get_parser()
     name = get_name(__file__)
-    save_json(args, osp.join(WorkSpace().get_save_dir(__file__), f'{name}.json'))
+    save_dir = WorkSpace().get_save_dir(__file__)
+    save_json(args, osp.join(save_dir, f'{name}_cfg.json'))
+    if args.output_dir == '':
+        args.output_dir = save_dir
 
+    # run_xxx(args)
 
 if __name__ == '__main__':
     main(py_file=__file__)

@@ -70,6 +70,7 @@ class_names = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
 
 class LoadStreams:
     """
+    从 rtsp 或 mp4 获取图像系列.
     References
     ----------
     yolov8_tracking/yolov8/ultralytics/yolo/data/dataloaders/stream_loaders.py
@@ -129,7 +130,7 @@ class LoadStreams:
                 cv2.destroyAllWindows()
                 raise StopIteration
         else:
-            for i, cap in enumerate(self.caps):
+            for i, cap in enumerate(self.caps):  # mp4 模式下避免跳帧
                 cap.grab()
                 self.num_frames[i] += 1
                 success, im = cap.retrieve()
@@ -148,14 +149,14 @@ class LoadStreams:
 
 
 class InferenceConfig(coco.CocoConfig):
-    # Set batch size to 1 since we'll be running inference on
-    # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
+    """推理模式配置."""
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
 
 
 @itti_timer
 def load_model():
+    """加载 mask_rcnn 模型."""
     MODEL_DIR = os.path.join(ROOT_DIR_MASKRCNN, "logs")
     COCO_MODEL_PATH = os.path.join(ROOT_DIR_MASKRCNN, "mask_rcnn_coco.h5")
     if not os.path.exists(COCO_MODEL_PATH):
@@ -169,32 +170,26 @@ def load_model():
 
 class MonoTracking:
     def __init__(self, config):
-        logging.info(f'config: {type(config)} {config}')
         self.config = config
-        self.video_path = config.video_path
-        self.skip = config.skip
-        self.max_frame = config.max_frame
-        self.show_images = config.show_images
-        self.output_dir = config.output_dir
 
     def run(self):
-        dataset = LoadStreams([self.video_path], self.skip, self.max_frame)
+        dataset = LoadStreams([self.config.video_path], self.config.skip, self.config.max_frame)
         model = load_model()
 
         ##########################################################
         # Camera Parameters
         ##########################################################
-        cam_model_1 = cameramodel.CameraModel.read_from_yml(self.config.camera_model);
-        cam_scale_factor = self.config.img_scale;
+        cam_model_1 = cameramodel.CameraModel.read_from_yml(self.config.camera_model)
+        cam_scale_factor = self.config.img_scale
         if cam_scale_factor < 0:
-            print('[ERROR]: Image scale factor < 0: {}'.format(cam_scale_factor))
-        cam_model_1.apply_scale_factor(cam_scale_factor,cam_scale_factor);
+            logging.error('[ERROR]: Image scale factor < 0: {}'.format(cam_scale_factor))
+        cam_model_1.apply_scale_factor(cam_scale_factor, cam_scale_factor)
         # Create pool of thead
         pool = ThreadPool(50)
         type_3DBox_list = box3D_object.Type3DBoxStruct.default_3DBox_list()
 
         win_name = 'mono_tracking'
-        if self.show_images:
+        if self.config.show_images:
             cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL)
             cv2.resizeWindow(str(win_name), 1920, 1080)
             cv2.moveWindow(str(win_name), 1920, 0)
@@ -285,10 +280,10 @@ class MonoTracking:
                     im_current_1 = det_object.draw_mask(im_current_1, mask_box_1, (0,0,255))
                     im_current_1 = det_object.draw_mask(im_current_1, mask_1, (0,255,255))
 
-            cv2.imwrite(osp.join(self.output_dir, f'frame-{frame_idx:04d}.jpg'), im)
-            cv2.imwrite(osp.join(self.output_dir, f'yaw-frame-{frame_idx:04d}.jpg'), im_current_1)
+            cv2.imwrite(osp.join(self.config.output_dir, f'frame-{frame_idx:04d}.jpg'), im)
+            cv2.imwrite(osp.join(self.config.output_dir, f'yaw-frame-{frame_idx:04d}.jpg'), im_current_1)
 
-            if self.show_images:
+            if self.config.show_images:
                 cv2.imshow(str(win_name), im)
                 if cv2.waitKey(30) == ord('q'):  # 1 millisecond
                     exit()
@@ -297,6 +292,8 @@ class MonoTracking:
 def get_parser():
     parser = argparse.ArgumentParser(
         description='Realtime mono tracking with trajectory-extractor')
+    parser.add_argument('--py_file', type=str, default=__file__,
+                        help='name of python file')
     parser.add_argument('-v', '--video_path', type=str,
                         default='test_alaco/sample/W91_2023-04-25_17_23_31.mp4',
                         help='input video path')
@@ -335,7 +332,7 @@ def main(py_file):
     args = get_parser()
     name = get_name(__file__)
     save_dir = WorkSpace().get_save_dir(__file__)
-    save_json(args, osp.join(save_dir, f'{name}.json'))
+    save_json(args, osp.join(save_dir, f'{name}_cfg.json'))
     if args.output_dir == '':
         args.output_dir = save_dir
 

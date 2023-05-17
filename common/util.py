@@ -89,6 +89,7 @@ def itti_argparse(func):
     def wrapper_argparse(*args, **kwargs):
         value = func(*args, **kwargs)
         assert hasattr(value, 'config_json')
+        assert hasattr(value, 'py_file')
         if osp.isfile(value.config_json):
             with open(value.config_json, 'r') as f:
                 data_json = json.load(f)
@@ -97,7 +98,7 @@ def itti_argparse(func):
 
         logging.warning(f'argparse.ArgumentParser:')
         char_concat = '^' if isWindows else '\\'
-        __text = f'\npython {osp.basename(__file__)} {char_concat}\n'
+        __text = f'\npython {osp.basename(value.py_file)} {char_concat}\n'
         for item in vars(value):
             __text += f'  -{item} {getattr(value, item)} {char_concat}\n'
             logging.info(f'{item:20s} : {getattr(value, item)}')
@@ -176,6 +177,7 @@ class Profile(contextlib.ContextDecorator):
         logging.info(f'Profile::__init__( {name}, {t} )')
         self.name = name
         self.t = t
+        self.count = 0
 
     def __enter__(self):
         """
@@ -190,9 +192,16 @@ class Profile(contextlib.ContextDecorator):
         """
         self.dt = self.time() - self.start  # delta-time
         self.t += self.dt  # accumulate dt
+        self.count += 1
 
     def time(self):
         """
         Get current time.
         """
         return time.time()
+
+    def __str__(self):
+        return f'{__class__}: dt={self.dt}, t={self.t}, count={self.count}'
+
+    def __repr__(self):
+        return self.__str__()
