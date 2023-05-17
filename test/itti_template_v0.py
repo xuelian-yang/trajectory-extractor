@@ -4,7 +4,7 @@
 # @Description :   
 # @Time        :   2023/05/17 09:43:08
 # @Author      :   Xuelian.Yang
-# @Contact     :   Xuelian.Yang@geely.com
+# @Contact     :   Xuelian.Yang@
 # @LastEditors :   Xuelian.Yang
 # @Example     :   python test/itti_template_v0.py
 

@@ -4,7 +4,7 @@
 # @Description :   单目跟踪
 # @Time        :   2023/05/12 13:51:37
 # @Author      :   Xuelian.Yang
-# @Contact     :   Xuelian.Yang@geely.com
+# @Contact     :   Xuelian.Yang@
 # @LastEditors :   Xuelian.Yang
 # @Example     :   python mono_tracking.py --show_images --img_scale 0.2
 
