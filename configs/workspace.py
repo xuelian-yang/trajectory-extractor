@@ -9,16 +9,15 @@ class WorkSpace:
         self.this = osp.dirname(__file__)
         self.home = osp.abspath(osp.join(self.this, '..'))
         self.temp = osp.join(self.home, 'temp')
-        if not osp.exists(self.temp):
-            os.makedirs(self.temp)
-        '''
-        self.video = osp.join(self.temp, 'alaco_video_archive')
-        if not osp.exists(self.video):
-            os.mkdir(self.video)
-        '''
  
     def get_temp_dir(self):
+        if not osp.exists(self.temp):
+            os.makedirs(self.temp)
         return self.temp
 
-    def get_video_dir(self):
-        return self.video
+    def get_save_dir(self, py_file):
+        name, _ = osp.splitext(osp.basename(py_file))
+        save_dir = osp.join(self.get_temp_dir(), name)
+        if not osp.exists(save_dir):
+            os.makedirs(save_dir)
+        return save_dir

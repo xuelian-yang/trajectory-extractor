@@ -209,6 +209,8 @@ class MonoTracking:
             cv2.resizeWindow(str(win_name), 1920, 1080)
             cv2.moveWindow(str(win_name), 1920, 0)
 
+        # TODO: 对每个目标，计算其 mask 与 180/5=36 个航向角下 3D 包围盒的重叠率，选取最高的作为航向角.
+
         for frame_idx, (_, im) in enumerate(dataset):
             d_print_b(f'{frame_idx:4d} {im.shape}')
             results = model.detect([im], verbose=1)

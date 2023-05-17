@@ -64,17 +64,21 @@ E:/ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe -i W92_2023-04-25_17_23_30.mp4 
 - [x] `traj_ext/camera_calib/run_show_calib.py`
   - 将 ROI 凸包叠加到图像上显示
 
-- [ ] `traj_ext/det_association/run_det_association.py`
+- [x] `traj_ext/det_association/run_det_association.py`
+  - 对 Mask_RCNN 输出的帧间目标进行关联匹配
 
-- [ ] `traj_ext/hd_map/run_generate_HD_map.py`
+- [x] `traj_ext/hd_map/run_generate_HD_map.py`
+  - 交互式绘制图像上对应的道路元素: 车道线、停止线、道路边缘
 
 - [ ] `traj_ext/object_det/run_create_det_object.py`
 
 - [ ] `traj_ext/object_det/run_inspect_det.py`
 
-- [ ] `traj_ext/object_det/run_saveimages.py`
+- [x] `traj_ext/object_det/run_saveimages.py`
+  - 从视频中解析图像并保存
 
-- [ ] `traj_ext/object_det/mask_rcnn/run_detections_csv.py`
+- [x] `traj_ext/object_det/mask_rcnn/run_detections_csv.py`
+  - 使用 Mask_RCNN 进行目标检测与分割
 
 - [ ] `traj_ext/postprocess_track/run_postprocess.py`
 
@@ -84,7 +88,8 @@ E:/ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe -i W92_2023-04-25_17_23_30.mp4 
 
 - [ ] `traj_ext/visualization/run_inspect_traj.py`
 
-- [ ] `traj_ext/visualization/run_visualizer.py`
+- [x] `traj_ext/visualization/run_visualizer.py`
+  - 在高精地图、原始图像上呈现检测结果 (ID、速度)
 
 <!-- ========= ========= =========  ========= ========= -->
 

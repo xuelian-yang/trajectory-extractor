@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 
+import argparse
 import contextlib
 import datetime
 import functools
+import json
 import logging
 import os
 import os.path as osp
+import platform
 from termcolor import colored
 import time
+
+isWindows = (platform.system() == "Windows")
 
 
 def d_print(text):
@@ -29,6 +34,21 @@ def d_print_y(text):
 def get_name(path):
     name, _ = osp.splitext(osp.basename(path))
     return name
+
+
+def save_json(data, path):
+    dirname = osp.dirname(path)
+    if not osp.exists(dirname):
+        os.makedirs(dirname)
+    if isinstance(data, dict):
+        config_dict = data
+    elif isinstance(data, argparse.Namespace):
+        config_dict = vars(data)
+    else:
+        raise TypeError(f'unexpected type: {type(data)}')
+    logging.info(f'writing {path!r}')
+    with open(path, 'w') as json_file:
+        json.dump(config_dict, json_file, indent=4)
 
 
 def setup_log(filename):
@@ -64,6 +84,64 @@ def setup_log(filename):
     print(colored(f'@{get_log_file!r} created at {dt_now}', 'magenta'))
 
 
+def itti_argparse(func):
+    @functools.wraps(func)
+    def wrapper_argparse(*args, **kwargs):
+        value = func(*args, **kwargs)
+        assert hasattr(value, 'config_json')
+        if osp.isfile(value.config_json):
+            with open(value.config_json, 'r') as f:
+                data_json = json.load(f)
+                vars(value).update(data_json)
+        vars(value).pop('config_json', None)
+
+        logging.warning(f'argparse.ArgumentParser:')
+        char_concat = '^' if isWindows else '\\'
+        __text = f'\npython {osp.basename(__file__)} {char_concat}\n'
+        for item in vars(value):
+            __text += f'  -{item} {getattr(value, item)} {char_concat}\n'
+            logging.info(f'{item:20s} : {getattr(value, item)}')
+        logging.info(f'{__text}')
+
+        return value
+    return wrapper_argparse
+
+
+def itti_debug(func):
+    """Print the function signature and return value
+    https://github.com/realpython/materials/blob/master/primer-on-python-decorators/decorators.py#L42
+    """
+    @functools.wraps(func)
+    def wrapper_debug(*args, **kwargs):
+        args_repr = [repr(a) for a in args]
+        kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
+        signature = ", ".join(args_repr + kwargs_repr)
+        # print(f"Calling {func.__name__}({signature})")
+        logging.info(f"Calling {func.__name__}({signature})")
+        value = func(*args, **kwargs)
+        # print(f"{func.__name__!r} returned {value!r}")
+        logging.info(f"{func.__name__!r} returned {value!r}")
+        return value
+
+    return wrapper_debug
+
+
+def itti_main(func):
+    @functools.wraps(func)
+    def wrapper_main(*args, **kwargs):
+        assert 'py_file' in kwargs.keys()
+        time_beg = time.time()
+        this_filename = osp.basename(kwargs['py_file'])
+        setup_log(this_filename)
+        value = func(*args, **kwargs)
+        time_end = time.time()
+        logging.warning(f'{this_filename} elapsed {time_end - time_beg} seconds')
+        print(colored(f'{this_filename} elapsed {time_end - time_beg} seconds', 'yellow'))
+        return value
+
+    return wrapper_main
+
+
 def itti_timer(func):
     """Print the runtime of the decorated function
     https://github.com/realpython/materials/blob/master/primer-on-python-decorators/decorators.py#L27
@@ -80,26 +158,6 @@ def itti_timer(func):
         return value
 
     return wrapper_timer
-
-
-def itti_debug(func):
-    """Print the function signature and return value
-    https://github.com/realpython/materials/blob/master/primer-on-python-decorators/decorators.py#L42
-    """
-
-    @functools.wraps(func)
-    def wrapper_debug(*args, **kwargs):
-        args_repr = [repr(a) for a in args]
-        kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
-        signature = ", ".join(args_repr + kwargs_repr)
-        # print(f"Calling {func.__name__}({signature})")
-        logging.info(f"Calling {func.__name__}({signature})")
-        value = func(*args, **kwargs)
-        # print(f"{func.__name__!r} returned {value!r}")
-        logging.info(f"{func.__name__!r} returned {value!r}")
-        return value
-
-    return wrapper_debug
 
 
 class Profile(contextlib.ContextDecorator):
