@@ -11,28 +11,23 @@
 # here put the import lib
 import argparse
 import copy
-import csv
 import cv2
-from datetime import datetime
-from distinctipy import distinctipy
-import json
 import logging
 import math
-from matplotlib import pyplot as plt
 from multiprocessing.dummy import Pool as ThreadPool
 import numpy as np
 import os
 import os.path as osp
-import pandas as pd
 import platform
 import sys
-from termcolor import colored
 import threading
 from threading import Thread
 import time
 
 FILE_PATH = osp.abspath(osp.dirname(__file__))
 sys.path.append(osp.join(FILE_PATH, '../..'))
+from common.util import get_name, itti_argparse, itti_debug, itti_main, itti_timer, save_json
+from configs.workspace import WorkSpace
 
 from traj_ext.box3D_fitting import Box3D_utils
 
@@ -46,9 +41,6 @@ from traj_ext.object_det import det_object
 from traj_ext.utils import det_zone
 from traj_ext.box3D_fitting import box3D_object
 
-from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
-from configs.workspace import WorkSpace
-
 from traj_ext.object_det.det_object import DetObject
 ROOT_DIR_MASKRCNN = osp.abspath(osp.join(FILE_PATH, './traj_ext/object_det/mask_rcnn/Mask_RCNN'))
 sys.path.append(ROOT_DIR_MASKRCNN)  # To find local version of the library
@@ -58,9 +50,6 @@ from mrcnn import visualize
 
 # Import COCO config
 from samples.coco import coco
-
-logger = logging.getLogger(__name__)
-isWindows = (platform.system() == "Windows")
 
 
 class_names = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
@@ -105,7 +94,7 @@ class LoadStreams:
             self.frames[i] = max(int(self.caps[i].get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
             if self.is_mp4 and self.frames[i] > max_frame:
                 self.frames[i] = max_frame
-                d_print(f'>> {self.frames[i]}')
+                logging.info(f'>> {self.frames[i]}')
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
             _, self.imgs[i] = self.caps[i].read()  # guarantee first frame
@@ -165,6 +154,7 @@ class InferenceConfig(coco.CocoConfig):
     IMAGES_PER_GPU = 1
 
 
+@itti_timer
 def load_model():
     MODEL_DIR = os.path.join(ROOT_DIR_MASKRCNN, "logs")
     COCO_MODEL_PATH = os.path.join(ROOT_DIR_MASKRCNN, "mask_rcnn_coco.h5")
@@ -179,7 +169,7 @@ def load_model():
 
 class MonoTracking:
     def __init__(self, config):
-        d_print_y(f'config: {type(config)} {config}')
+        logging.info(f'config: {type(config)} {config}')
         self.config = config
         self.video_path = config.video_path
         self.skip = config.skip
@@ -212,7 +202,7 @@ class MonoTracking:
         # TODO: 对每个目标，计算其 mask 与 180/5=36 个航向角下 3D 包围盒的重叠率，选取最高的作为航向角.
 
         for frame_idx, (_, im) in enumerate(dataset):
-            d_print_b(f'{frame_idx:4d} {im.shape}')
+            logging.info(f'{frame_idx:4d} {im.shape}')
             results = model.detect([im], verbose=1)
             r = results[0]
             det_object_list = []
@@ -303,8 +293,8 @@ class MonoTracking:
                 if cv2.waitKey(30) == ord('q'):  # 1 millisecond
                     exit()
 
-
-def main():
+@itti_argparse
+def get_parser():
     parser = argparse.ArgumentParser(
         description='Realtime mono tracking with trajectory-extractor')
     parser.add_argument('-v', '--video_path', type=str,
@@ -331,20 +321,21 @@ def main():
     parser.add_argument('--img_scale', type = float,
                         default=0.2,
                         help='Image scaling factor to improve speed')
+    parser.add_argument('--config_json', type=str,
+                        default='',
+                        help='Path to json config')
     args = parser.parse_args()
-    logger.warning(f'argparse.ArgumentParser:')
-    char_concat = '^' if isWindows else '\\'
-    __text = f'\npython {osp.basename(__file__)} {char_concat}\n'
-    for item in vars(args):
-        __text += f'  -{item} {getattr(args, item)} {char_concat}\n'
-        logger.info(f'{item:20s} : {getattr(args, item)}')
-    logger.info(f'{__text}')
+    return args
 
-    ws = WorkSpace()
-    save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
-    if not osp.exists(save_dir):
-        os.makedirs(save_dir)
 
+@itti_main
+@itti_timer
+@itti_debug
+def main(py_file):
+    args = get_parser()
+    name = get_name(__file__)
+    save_dir = WorkSpace().get_save_dir(__file__)
+    save_json(args, osp.join(save_dir, f'{name}.json'))
     if args.output_dir == '':
         args.output_dir = save_dir
 
@@ -353,12 +344,4 @@ def main():
 
 
 if __name__ == "__main__":
-    time_beg = time.time()
-    this_filename = osp.basename(__file__)
-    setup_log(this_filename)
-
-    main()
-
-    time_end = time.time()
-    logger.warning(f'{this_filename} elapsed {time_end - time_beg} seconds')
-    print(colored(f'{this_filename} elapsed {time_end - time_beg} seconds', 'yellow'))
+    main(py_file=__file__)
