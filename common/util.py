@@ -11,6 +11,7 @@ import os.path as osp
 import platform
 from termcolor import colored
 import time
+import traceback
 
 isWindows = (platform.system() == "Windows")
 
@@ -67,7 +68,8 @@ def setup_log(filename):
     )
     '''
     if not filename.lower().endswith('.log'):
-        filename = filename + '.log'
+        name, _ = osp.splitext(filename)
+        filename = name + '.log'
     log_dir = osp.abspath(osp.join(osp.dirname(__file__), '../logs'))
     if not osp.exists(log_dir):
         os.makedirs(log_dir)
@@ -98,7 +100,8 @@ def itti_argparse(func):
 
         logging.warning(f'argparse.ArgumentParser:')
         char_concat = '^' if isWindows else '\\'
-        __text = f'\npython {osp.basename(value.py_file)} {char_concat}\n'
+        __text = f'\n{osp.abspath(value.py_file)}\n'
+        __text += f'\npython {osp.basename(value.py_file)} {char_concat}\n'
         for item in vars(value):
             __text += f'  -{item} {getattr(value, item)} {char_concat}\n'
             logging.info(f'{item:20s} : {getattr(value, item)}')
@@ -159,6 +162,37 @@ def itti_timer(func):
         return value
 
     return wrapper_timer
+
+global_itti_trackback = {}
+global_overwrite = False  # batch_xxx.bat 模式下多次调用 python，避免覆盖
+
+def itti_trackback(func):
+    """
+    traceback — Print or retrieve a stack traceback
+        https://docs.python.org/3/library/traceback.html
+    """
+    @functools.wraps(func)
+    def wrapper_trackback(*args, **kwargs):
+        dirname = osp.join(osp.dirname(__file__), '../logs')
+        if not osp.exists(dirname):
+            os.makedirs(dirname)
+        track_file = osp.join(dirname, 'itti_trackback.log')
+        if global_overwrite:
+            if len(global_itti_trackback.keys()) == 0:  # 清空原记录
+                with open(track_file, 'w') as f_ou:
+                    pass
+        if func.__name__ not in global_itti_trackback.keys():
+            global_itti_trackback[func.__name__] = 1
+            with open(track_file, 'at') as f_ou:
+                f_ou.write(f'{"#"*60}\n# func: ({func.__module__} {func.__name__!r})\n{"#"*60}\n')
+                traceback.print_stack(file=f_ou)
+                f_ou.write('\n\n')
+        else:
+            global_itti_trackback[func.__name__] += 1
+            d_print_b(f'itti_trackback skip {func.__name__:20s} >> {global_itti_trackback[func.__name__]:2d}')
+        value = func(*args, **kwargs)
+        return value
+    return wrapper_trackback
 
 
 class Profile(contextlib.ContextDecorator):

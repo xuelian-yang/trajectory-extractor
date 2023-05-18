@@ -6,6 +6,7 @@
 #
 ########################################################################################
 
+import logging
 import numpy as np
 import cv2
 import csv
@@ -19,6 +20,12 @@ from traj_ext.tracker import EKF_CVCYR
 from traj_ext.tracker import EKF_CV
 from traj_ext.tracker import EKF_BM2
 
+import os.path as osp
+import sys
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
+from common.util import itti_trackback
+
+@itti_trackback
 def create_tracker(dynamic_model, track_id, label, P_init = None, Q = None, R = None):
     """Create a EKF tracker with specific dynamic model
 
@@ -36,6 +43,7 @@ def create_tracker(dynamic_model, track_id, label, P_init = None, Q = None, R = 
     Raises:
         ValueError: Unknown Dynamic model
     """
+    logging.info(f'create_tracker( {dynamic_model}, .. )')
 
     # Constant Velocity Model:
     if dynamic_model == "CV":

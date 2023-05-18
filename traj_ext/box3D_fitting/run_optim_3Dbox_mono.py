@@ -159,7 +159,7 @@ def run_optim_3Dbox_mono(config):
         print('{}'.format(e))
         return False;
 
-    # Type of Box 3D:
+    # Type of Box 3D: - 获取机非人预设的长宽高
     type_3DBox_list = box3D_object.Type3DBoxStruct.default_3DBox_list();
     if os.path.isfile(config.type_box3D):
         type_3DBox_list = box3D_object.Type3DBoxStruct.read_type_csv(config.type_box3D);
@@ -254,24 +254,17 @@ def run_optim_3Dbox_mono(config):
             det = det_object_list[det_ind];
 
             for type_3DBox in type_3DBox_list:
-
                 if det.label ==  type_3DBox.label:
-
                     det_scaled = det.to_scale(config.img_scale, config.img_scale);
 
                     input_dict = {};
-
                     input_dict['mask'] = det_scaled.det_mask;
-
                     input_dict['roi'] = det_scaled.det_2Dbox;
-
                     input_dict['det_id'] = det_scaled.det_id;
-
                     input_dict['cam_model'] = cam_model_1;
                     input_dict['im_size'] =  im_size_1;
                     input_dict['box_size'] = type_3DBox.box3D_lwh;
                     input_dict['frame_idx'] = current_index
-
                     array_inputs.append(input_dict);
 
                     # # If det_zone_IM is defined:
@@ -291,6 +284,7 @@ def run_optim_3Dbox_mono(config):
         while(not_done):
             try:
                 with dt_fitting:
+                    # 拟合航向角
                     results = pool.map(Box3D_utils.find_3Dbox_multithread, array_inputs);
                 not_done = False;
             except Exception as e:
@@ -320,21 +314,19 @@ def run_optim_3Dbox_mono(config):
 
             # Display box on image
             box3D_result.display_on_image(im_current_1, cam_model_1);
-
             mask_box_1 = box3D_result.create_mask(cam_model_1, im_size_1);
 
             o_1, mo_1, mo_1_b = Box3D_utils.overlap_mask(mask_1, mask_box_1);
-            print("Overlap total: {}".format(o_1));
+            # print("Overlap total: {}".format(o_1));
+            logging.debug(f'Overlap total: {o_1}')
 
             # Do not plot the 3D box if overlap < 70 %
             if box3D_result.percent_overlap < 0.5:
                 im_current_1 = det_object.draw_mask(im_current_1, mask_box_1, (255,0,0));
                 im_current_1 = det_object.draw_mask(im_current_1, mask_1, (255,0,0));
-
             else:
                 im_current_1 = det_object.draw_mask(im_current_1, mask_box_1, (0,0,255));
                 im_current_1 = det_object.draw_mask(im_current_1, mask_1, (0,255,255));
-
             # im_current_1 = Box3D_utils.draw_boundingbox(im_current_1, r_1);
 
         if show_images:
@@ -344,11 +336,11 @@ def run_optim_3Dbox_mono(config):
 
         # Save the Image
         if save_images:
-            cv2.imwrite( os.path.join(box3d_data_img_dir, image_name), im_current_1 );
+            cv2.imwrite( os.path.join(box3d_data_img_dir, f'no_powell_{image_name}'), im_current_1 );
             print('\n ===> Execution Time', round((time.time() - start_time), 5 ), '\n' )
 
     print(dt_fitting)
-    print('\n ===> Total execution time', total_time)
+    print(f'\n ===> Total execution time {time.time() - total_time:.6f} seconds')
     cv2.destroyAllWindows()
 
     return True;

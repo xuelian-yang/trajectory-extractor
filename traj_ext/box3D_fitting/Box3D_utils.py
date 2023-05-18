@@ -24,6 +24,12 @@ from traj_ext.utils.mathutil import *
 
 from traj_ext.box3D_fitting import box3D_object
 
+import os.path as osp
+import sys
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '..')))
+from common.util import itti_trackback
+
+@itti_trackback
 def overlap_mask(mask_1, mask_2):
     """Compute overlapping score.
        Weight more the regions of mask_1 going out of the region of mask_2 in count.
@@ -52,6 +58,7 @@ def overlap_mask(mask_1, mask_2):
 
     return count, mask_count_1, mask_count_2;
 
+@itti_trackback
 def compute_cost_mono(opti_params, im_size, cam_model, mask, param_fix):
     """Compute the overlap cost for mono image between
     计算 3D 包围盒与图像分割 mask 间重叠率.
@@ -89,6 +96,7 @@ def compute_cost_mono(opti_params, im_size, cam_model, mask, param_fix):
     # Return overlap_score
     return overlap_score;
 
+@itti_trackback
 def overlap_percentage_mask(mask_1, mask_2):
     """Compute overlapping percentage between two masks: Intersection over Union
 
@@ -114,6 +122,7 @@ def overlap_percentage_mask(mask_1, mask_2):
 
     return percent_overlap;
 
+@itti_trackback
 def compute_cost_stero(opti_params, im_size_1, im_size_2, cam_model_1, cam_model_2, mask_1, mask_2,param_fix):
     """Compute the overlap cost for steareo images between.
     Cost is the sum of the cost on each image (but one position / orientation in 3D of the 3DBox)
@@ -142,6 +151,7 @@ def compute_cost_stero(opti_params, im_size_1, im_size_2, cam_model_1, cam_model
     # Return total_cost
     return total_cost;
 
+@itti_trackback
 def find_3Dbox(mask, roi, cam_model, im_size, box_size_lwh):
     """Find 3D box correspondig to a mask
     此接口非常慢: (720, 1280, 3) 降采样到 (144, 256, 3) 后, 单个框的拟合耗时可达 3.5 秒
@@ -233,7 +243,7 @@ def find_3Dbox(mask, roi, cam_model, im_size, box_size_lwh):
 
     return box3D;
 
-
+@itti_trackback
 def find_3Dbox_ex(mask, roi, cam_model, im_size, box_size_lwh):
     """
     对 find_3Dbox(..) 进行加速, 18
@@ -263,52 +273,72 @@ def find_3Dbox_ex(mask, roi, cam_model, im_size, box_size_lwh):
     param_min = None
     init_x, init_y = x, y
     succ = 0
-    for psi_deg in range(0,180,60):
-        psi_rad = np.deg2rad(psi_deg)
+    use_minimize_method = False  # 使用 最优化方法还是线性搜索
+    if use_minimize_method:
+        for psi_deg in range(0,180,60):
+            psi_rad = np.deg2rad(psi_deg)
 
-        # We only optimize Yaw, Position X, Position Y
-        param_opt = [psi_rad, x, y]
+            # We only optimize Yaw, Position X, Position Y
+            param_opt = [psi_rad, x, y]
 
-        # Position Z assume to be 0
-        # 3DBox size: Defined by the class ID
-        param_fix = [z, l, w, h]
-        p_init = param_opt
+            # Position Z assume to be 0
+            # 3DBox size: Defined by the class ID
+            param_fix = [z, l, w, h]
+            p_init = param_opt
 
-        logging.info(f'({threading.get_ident()} / {threading.active_count()}) psi_deg: {psi_deg}, psi_rad: {psi_rad}, x: {x}, y: {y}')
+            logging.info(f'({threading.get_ident()} / {threading.active_count()}) psi_deg: {psi_deg}, psi_rad: {psi_rad}, x: {x}, y: {y}')
 
-        # Run optimizer: Good method: COBYLA, Powell - 基于最大化重叠率拟合航向角
-        param = opt.minimize(compute_cost_mono, p_init, method='Powell', args=(im_size, cam_model, mask, param_fix), options={'maxfev': 1000, 'disp': True})
-        if param_min is None:
-            succ += 1
-            logging.info(f'({threading.get_ident()} / {threading.active_count()}), iter={succ} param=({param.x} {param.fun} {param.success})')
-            param_min = param
+            # Run optimizer: Good method: COBYLA, Powell - 基于最大化重叠率拟合航向角，最大迭代次数 maxfev 降为 100 次时，时间减半，效果差异不大
+            # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+            param = opt.minimize(compute_cost_mono, p_init, method='Powell', args=(im_size, cam_model, mask, param_fix), options={'maxfev': 1000, 'disp': False})
+            if param_min is None:
+                succ += 1
+                logging.info(f'({threading.get_ident()} / {threading.active_count()}), iter={succ} param=({param.x} {param.fun} {param.success})')
+                param_min = param
 
-        # Keep the best values among the different run with different initial guesses
-        if param.fun < param_min.fun:
-            succ += 1
-            logging.info(f'({threading.get_ident()} / {threading.active_count()}), iter={succ} param=({param.x} {param.fun} {param.success})')
-            param_min = param
+            # Keep the best values among the different run with different initial guesses
+            if param.fun < param_min.fun:
+                succ += 1
+                logging.info(f'({threading.get_ident()} / {threading.active_count()}), iter={succ} param=({param.x} {param.fun} {param.success})')
+                param_min = param
 
-    param = param_min
-    logging.info(f'({threading.get_ident()} / {threading.active_count()}), final_iter={succ} param=({param.x} {param.fun} {param.success})')
+        param = param_min
+        logging.info(f'({threading.get_ident()} / {threading.active_count()}), final_iter={succ} param=({param.x} {param.fun} {param.success})')
 
-    # Retrieve 3D box parameters:
-    psi_rad = round(param.x[0],4)
-    x = round(param.x[1],4)
-    y = round(param.x[2],4)
+        # Retrieve 3D box parameters:
+        psi_rad = round(param.x[0],4)
+        x = round(param.x[1],4)
+        y = round(param.x[2],4)
 
-    logging.warning(f'({threading.get_ident()} / {threading.active_count()}) Powell optimizer >>> yaw = {psi_rad}, x: {init_x} => {x}, y: {init_y} => {y}')
+        logging.warning(f'({threading.get_ident()} / {threading.active_count()}) Powell optimizer >>> yaw = {psi_rad}, x: {init_x} => {x}, y: {init_y} => {y}')
 
-    z = round(param_fix[0],4)
-    l = round(param_fix[1],4)
-    w = round(param_fix[2],4)
-    h = round(param_fix[3],4)
+        z = round(param_fix[0],4)
+        l = round(param_fix[1],4)
+        w = round(param_fix[2],4)
+        h = round(param_fix[3],4)
+
+    else:  # 线性搜索
+        best_psi_rad = None
+        best_func = None
+        for psi_deg in range(0, 180, 10):
+            psi_rad = np.deg2rad(psi_deg)
+            box3D = box3D_object.Box3DObject(psi_rad, x, y, z, l, w, h)
+            mask_3Dbox = box3D.create_mask(cam_model, im_size)
+            overlap_score, masko_1, masko_2 = overlap_mask(mask, mask_3Dbox)
+            if best_func is None:
+                best_func = overlap_score
+                best_psi_rad = psi_rad
+            elif best_func > overlap_score:
+                best_func = overlap_score
+                best_psi_rad = psi_rad
+        psi_rad = best_psi_rad
 
     # Construct param_3Dbox
     box3D = box3D_object.Box3DObject(psi_rad, x, y, z, l, w, h)
 
     return box3D
 
+@itti_trackback
 def find_3Dbox_multithread(input_dict):
     """Find 3D box correspondig to a mask. Adapted for a mutlithread pool input format (one dict)
 

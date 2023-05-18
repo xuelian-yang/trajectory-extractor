@@ -6,6 +6,7 @@
 # @Author      :   Xuelian.Yang
 # @Contact     :   Xuelian.Yang@
 # @LastEditors :   Xuelian.Yang
+# @Example     :   python test/itti_template_v1.py
 
 # here put the import lib
 
@@ -14,10 +15,13 @@ import os.path as osp
 import sys
 
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '..')))
-from common.util import get_name, itti_argparse, itti_debug, itti_main, itti_timer, save_json
+from common.util import get_name, itti_argparse, itti_debug, itti_main, itti_timer, itti_trackback, save_json
 from configs.workspace import WorkSpace
 
+sys.path.append(osp.dirname(__file__))
+from itti_func import create_2d_array, get_time
 
+@itti_trackback
 @itti_argparse
 def get_parser():
     parser = argparse.ArgumentParser(
@@ -37,6 +41,13 @@ def get_parser():
     return args
 
 
+@itti_trackback
+def run_xxx(args):
+    create_2d_array()
+    get_time()
+
+
+@itti_trackback
 @itti_main
 @itti_timer
 @itti_debug
@@ -48,7 +59,8 @@ def main(py_file):
     if args.output_dir == '':
         args.output_dir = save_dir
 
-    # run_xxx(args)
+    for _ in range(10):
+        run_xxx(args)
 
 if __name__ == '__main__':
     main(py_file=__file__)

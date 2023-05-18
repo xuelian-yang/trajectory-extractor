@@ -28,6 +28,11 @@ from traj_ext.tracker import EKF_utils
 from traj_ext.tracker import EKF_CV
 from traj_ext.tracker import EKF_BM2
 
+import os.path as osp
+import sys
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
+from common.util import itti_trackback
+
 class ProjectionMode(Enum):
     BOX3D = 1;
     CENTER_2D = 2;
@@ -206,6 +211,7 @@ class TrackProcess(object):
         return l_times_ms;
 
 
+    @itti_traceback
     def process_traj(self, list_times_ms, reverse_init_BM = False):
 
         # Making sure list of measurement is not empty
