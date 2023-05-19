@@ -27,9 +27,9 @@ from traj_ext.box3D_fitting import box3D_object
 import os.path as osp
 import sys
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '..')))
-from common.util import itti_trackback
+from common.util import itti_traceback
 
-@itti_trackback
+#@itti_traceback
 def overlap_mask(mask_1, mask_2):
     """Compute overlapping score.
        Weight more the regions of mask_1 going out of the region of mask_2 in count.
@@ -58,7 +58,7 @@ def overlap_mask(mask_1, mask_2):
 
     return count, mask_count_1, mask_count_2;
 
-@itti_trackback
+#@itti_traceback
 def compute_cost_mono(opti_params, im_size, cam_model, mask, param_fix):
     """Compute the overlap cost for mono image between
     计算 3D 包围盒与图像分割 mask 间重叠率.
@@ -96,7 +96,7 @@ def compute_cost_mono(opti_params, im_size, cam_model, mask, param_fix):
     # Return overlap_score
     return overlap_score;
 
-@itti_trackback
+#@itti_traceback
 def overlap_percentage_mask(mask_1, mask_2):
     """Compute overlapping percentage between two masks: Intersection over Union
 
@@ -122,7 +122,7 @@ def overlap_percentage_mask(mask_1, mask_2):
 
     return percent_overlap;
 
-@itti_trackback
+#@itti_traceback
 def compute_cost_stero(opti_params, im_size_1, im_size_2, cam_model_1, cam_model_2, mask_1, mask_2,param_fix):
     """Compute the overlap cost for steareo images between.
     Cost is the sum of the cost on each image (but one position / orientation in 3D of the 3DBox)
@@ -151,7 +151,7 @@ def compute_cost_stero(opti_params, im_size_1, im_size_2, cam_model_1, cam_model
     # Return total_cost
     return total_cost;
 
-@itti_trackback
+#@itti_traceback
 def find_3Dbox(mask, roi, cam_model, im_size, box_size_lwh):
     """Find 3D box correspondig to a mask
     此接口非常慢: (720, 1280, 3) 降采样到 (144, 256, 3) 后, 单个框的拟合耗时可达 3.5 秒
@@ -243,7 +243,7 @@ def find_3Dbox(mask, roi, cam_model, im_size, box_size_lwh):
 
     return box3D;
 
-@itti_trackback
+#@itti_traceback
 def find_3Dbox_ex(mask, roi, cam_model, im_size, box_size_lwh):
     """
     对 find_3Dbox(..) 进行加速, 18
@@ -273,7 +273,7 @@ def find_3Dbox_ex(mask, roi, cam_model, im_size, box_size_lwh):
     param_min = None
     init_x, init_y = x, y
     succ = 0
-    use_minimize_method = False  # 使用 最优化方法还是线性搜索
+    use_minimize_method = True  # 使用 最优化方法还是线性搜索
     if use_minimize_method:
         for psi_deg in range(0,180,60):
             psi_rad = np.deg2rad(psi_deg)
@@ -338,7 +338,7 @@ def find_3Dbox_ex(mask, roi, cam_model, im_size, box_size_lwh):
 
     return box3D
 
-@itti_trackback
+#@itti_traceback
 def find_3Dbox_multithread(input_dict):
     """Find 3D box correspondig to a mask. Adapted for a mutlithread pool input format (one dict)
 

@@ -9,6 +9,15 @@ python traj_ext/box3D_fitting/run_optim_3Dbox_mono.py ^
   -camera_model test_dataset/brest_20190609_130424_327_334/brest_area1_street_cfg.yml ^
   -img_scale 0.2 ^
   -frame_limit 3
+
+python traj_ext/box3D_fitting/run_optim_3Dbox_mono.py ^
+  -image_dir test_alaco/alaco_cameras/W91_2023-04-25_17_23_31/img ^
+  -det_dir test_alaco/alaco_cameras/W91_2023-04-25_17_23_31/output/det/csv ^
+  -det_zone_fned test_alaco/alaco_cameras/10.10.145.231_detection_zone.yml ^
+  -type_box3D traj_ext/box3D_fitting/test/optim_3Dbox_mono_type_test.csv ^
+  -camera_model test_alaco/alaco_cameras/10.10.145.231_cfg.yml ^
+  -img_scale 0.2 ^
+  -frame_limit 3
 """
 
 ##########################################################################################
@@ -336,7 +345,8 @@ def run_optim_3Dbox_mono(config):
 
         # Save the Image
         if save_images:
-            cv2.imwrite( os.path.join(box3d_data_img_dir, f'no_powell_{image_name}'), im_current_1 );
+            # cv2.imwrite( os.path.join(box3d_data_img_dir, f'no_powell_{image_name}'), im_current_1 );
+            cv2.imwrite( os.path.join(box3d_data_img_dir, f'{image_name}'), im_current_1 );
             print('\n ===> Execution Time', round((time.time() - start_time), 5 ), '\n' )
 
     print(dt_fitting)

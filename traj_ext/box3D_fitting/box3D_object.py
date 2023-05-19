@@ -19,7 +19,7 @@ from traj_ext.utils import mathutil
 import os.path as osp
 import sys
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '..')))
-from common.util import itti_trackback
+from common.util import itti_traceback
 
 class Type3DBoxStruct():
     def __init__(self, label, length, width, height):
@@ -324,7 +324,7 @@ class Box3DObject(object):
 
         return dict_data;
 
-    @itti_trackback
+    #@itti_traceback
     def create_3Dbox(self):
         """Create 3Dbox corners points in NED frame from the 3D box paramters
         (航向角、底面中心点坐标、长宽高) => 八顶点
@@ -491,7 +491,7 @@ class Box3DObject(object):
 
         return image;
 
-    @itti_trackback
+    #@itti_traceback
     def get_projected_2Dbox(self, cam_model):
         """Get the projected 2D box from the 3D box
 

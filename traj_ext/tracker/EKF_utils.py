@@ -23,9 +23,9 @@ from traj_ext.tracker import EKF_BM2
 import os.path as osp
 import sys
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
-from common.util import itti_trackback
+from common.util import itti_traceback
 
-@itti_trackback
+@itti_traceback
 def create_tracker(dynamic_model, track_id, label, P_init = None, Q = None, R = None):
     """Create a EKF tracker with specific dynamic model
 

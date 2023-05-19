@@ -15,13 +15,13 @@ import os.path as osp
 import sys
 
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '..')))
-from common.util import get_name, itti_argparse, itti_debug, itti_main, itti_timer, itti_trackback, save_json
+from common.util import get_name, itti_argparse, itti_debug, itti_main, itti_timer, itti_traceback, save_json
 from configs.workspace import WorkSpace
 
 sys.path.append(osp.dirname(__file__))
 from itti_func import create_2d_array, get_time
 
-@itti_trackback
+@itti_traceback
 @itti_argparse
 def get_parser():
     parser = argparse.ArgumentParser(
@@ -41,13 +41,13 @@ def get_parser():
     return args
 
 
-@itti_trackback
+@itti_traceback
 def run_xxx(args):
     create_2d_array()
     get_time()
 
 
-@itti_trackback
+@itti_traceback
 @itti_main
 @itti_timer
 @itti_debug

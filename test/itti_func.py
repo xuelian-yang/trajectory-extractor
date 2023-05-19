@@ -10,15 +10,15 @@
 import os.path as osp
 import sys
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '..')))
-from common.util import itti_trackback
+from common.util import itti_traceback
 
-@itti_trackback
+@itti_traceback
 def create_2d_array():
     import numpy as np
     a = np.random.randint(5, size=(2, 3))
     return a
 
-@itti_trackback
+@itti_traceback
 def get_time():
     import time
     return time.time()

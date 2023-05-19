@@ -163,36 +163,36 @@ def itti_timer(func):
 
     return wrapper_timer
 
-global_itti_trackback = {}
+global_itti_traceback = {}
 global_overwrite = False  # batch_xxx.bat 模式下多次调用 python，避免覆盖
 
-def itti_trackback(func):
+def itti_traceback(func):
     """
     traceback — Print or retrieve a stack traceback
         https://docs.python.org/3/library/traceback.html
     """
     @functools.wraps(func)
-    def wrapper_trackback(*args, **kwargs):
+    def wrapper_traceback(*args, **kwargs):
         dirname = osp.join(osp.dirname(__file__), '../logs')
         if not osp.exists(dirname):
             os.makedirs(dirname)
-        track_file = osp.join(dirname, 'itti_trackback.log')
+        track_file = osp.join(dirname, 'itti_traceback.log')
         if global_overwrite:
-            if len(global_itti_trackback.keys()) == 0:  # 清空原记录
+            if len(global_itti_traceback.keys()) == 0:  # 清空原记录
                 with open(track_file, 'w') as f_ou:
                     pass
-        if func.__name__ not in global_itti_trackback.keys():
-            global_itti_trackback[func.__name__] = 1
+        if func.__name__ not in global_itti_traceback.keys():
+            global_itti_traceback[func.__name__] = 1
             with open(track_file, 'at') as f_ou:
                 f_ou.write(f'{"#"*60}\n# func: ({func.__module__} {func.__name__!r})\n{"#"*60}\n')
                 traceback.print_stack(file=f_ou)
                 f_ou.write('\n\n')
         else:
-            global_itti_trackback[func.__name__] += 1
-            d_print_b(f'itti_trackback skip {func.__name__:20s} >> {global_itti_trackback[func.__name__]:2d}')
+            global_itti_traceback[func.__name__] += 1
+            d_print_b(f'itti_traceback skip {func.__name__:20s} >> {global_itti_traceback[func.__name__]:2d}')
         value = func(*args, **kwargs)
         return value
-    return wrapper_trackback
+    return wrapper_traceback
 
 
 class Profile(contextlib.ContextDecorator):
