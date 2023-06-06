@@ -19,7 +19,7 @@ from termcolor import colored
 
 from traj_ext.utils.mathutil import *
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
-from common.util import d_print_y
+from common.util import d_print, d_print_y
 
 ###################################################################
 # Camera Util function
@@ -363,7 +363,7 @@ class CameraModel:
                     print(f'  >>> self.rot_CF_F:   {self.rot_CF_F.shape}')
                     print(f'  >>> self.trans_CF_F: {self.trans_CF_F.shape}')
                     print(f'  >>> self.cam_matrix: {self.cam_matrix.shape}')
-                    print(f'  >>> pt: {pt}')
+                    d_print(f'  >>> pt: {pt} {pt.shape}')
                     d_print_y(f'>>> pt_img: {pt_img} {"#"*20}')
                     pt_0 = np.dot(self.rot_CF_F, pt.T)
                     print(f'  >>> pt_0: {pt_0.T}')
@@ -373,7 +373,27 @@ class CameraModel:
                     print(f'  >>> pt_2: {pt_2.T}')
                     pt_3 = pt_2 / pt_2[2]
                     d_print_y(f'>>> pt_3: {pt_3.T} {pt_3.T.astype(np.int32)}')
-                    # exit(0)
+
+                    pt_ex = np.hstack((pt, np.ones((1, 1))))
+                    print(f'pt_ex: {pt_ex.shape} {pt_ex}')
+                    r_t = np.hstack((self.rot_CF_F, self.trans_CF_F))
+                    r_t_homo = np.vstack((r_t, np.asarray([[0, 0, 0, 1.0]])))
+                    print(f'r_t: {r_t.shape} \n{r_t}')
+                    print(f'r_t_homo: {r_t_homo.shape} \n{r_t_homo}')
+
+                    pt_4 = np.dot(r_t_homo, pt_ex.T)
+                    d_print(f'>>> pt_4: {pt_4.T}')
+
+                    inv_r = self.rot_CF_F.T
+                    inv_t = - np.dot(inv_r, self.trans_CF_F)
+                    inv_r_t = np.hstack((inv_r, inv_t))
+                    inv_r_t_homo = np.vstack((inv_r_t, np.asarray([[0, 0, 0, 1.0]])))
+                    print(f'inv_r_t: {inv_r_t.shape} \n{inv_r_t}')
+                    print(f'inv_r_t_homo: {inv_r_t_homo.shape} \n{inv_r_t_homo}')
+                    pt_5 = np.dot(inv_r_t_homo, pt_4)
+                    d_print_y(f'>>> pt_5: {pt_5.T}')
+
+                    exit(0)
 
                 # Cretae list of tulpe
                 pt_img_tulpe = (int(pt_img[0][0][0]), int(pt_img[0][0][1]));
