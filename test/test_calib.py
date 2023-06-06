@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import argparse
+import copy
 import cv2
 from distinctipy import distinctipy
 import logging
@@ -40,31 +41,41 @@ def get_parser():
     return args
 
 
-def write_sample(image, px_coords):
+def write_sample(image, px_coords, enable_text=False):
     color_col = distinctipy.get_colors(len(px_coords))
     for idx in range(len(px_coords)):
         _color = [int(f * 255.0) for f in color_col[idx]]
         color_col[idx] = _color
 
     h, w, _ = image.shape
-    print(f'{image.shape}')
+    print(f'>>> image: {image.shape}')
     for idx, item in enumerate(px_coords):
         p_w, p_h = item
         if 0 <= p_w < w and 0 <= p_h < h:
-            cv2.circle(image, item, 10, color_col[idx], 7)
-            text = f'{idx}'
-            if idx == 0:
-                text = 'O'
-            if idx == 1:
-                text = 'X'
-            if idx == 2:
-                text = 'Y'
-            font_scale = 5
-            if idx < 3:
-                font_scale = 2.0
-            cv2.putText(image, text, item, cv2.FONT_HERSHEY_COMPLEX, font_scale, color_col[idx], 5)
-    cv2.line(image, px_coords[0], px_coords[1], color_col[1], 3)
-    cv2.line(image, px_coords[0], px_coords[2], color_col[2], 3)
+            if h == 2160:
+                cv2.circle(image, item, 10, color_col[idx], 7)
+            else:
+                cv2.circle(image, item, 2, color_col[idx], 2)
+            if enable_text:
+                text = f'{idx}'
+                if idx == 0:
+                    text = 'O'
+                if idx == 1:
+                    text = 'X'
+                if idx == 2:
+                    text = 'Y'
+                font_scale = 5
+                if idx < 3:
+                    font_scale = 2.0
+                if h == 2160:
+                    cv2.putText(image, text, item, cv2.FONT_HERSHEY_COMPLEX, font_scale, color_col[idx], 5)
+                else:
+                    cv2.putText(image, text, item, cv2.FONT_HERSHEY_COMPLEX, 1, color_col[idx], 1)
+    line_width = 1
+    if h == 2160:
+        line_width = 3
+    cv2.line(image, px_coords[0], px_coords[1], color_col[1], line_width)
+    cv2.line(image, px_coords[0], px_coords[2], color_col[2], line_width)
 
     return image
 
@@ -83,8 +94,8 @@ def main(py_file):
     cam_model = CameraModel.read_from_yml(args.calib)
     logging.info(f'cam_model: {cam_model}')
 
+    save_name = get_name(args.image)
     im = cv2.imread(args.image)
-
     pt = [
             np.array([0, 0, 0], dtype=np.float32),
             np.array([15, 0, 0], dtype=np.float32),
@@ -94,12 +105,33 @@ def main(py_file):
             np.array([5, 10, 0], dtype=np.float32),
             np.array([-5, 10, 0], dtype=np.float32),
           ]
-    list_pt_m = cam_model.project_list_pt_F(pt)
 
-    print(f'>>> list_pt_m: {type(list_pt_m)} {list_pt_m}')
+    # ======================================================================== #
+    # < 0 initial >
+    # ======================================================================== #
+    im_0 = copy.deepcopy(im)
+    list_pt_m_0 = cam_model.project_list_pt_F(pt)
+    print(f'>>> list_pt_m_0: {type(list_pt_m_0)} {list_pt_m_0}')
+    im_0 = write_sample(im_0, list_pt_m_0, True)
+    cv2.imwrite(osp.join(save_dir, f'0_initial_{save_name}.png'), im_0)
 
-    im = write_sample(im, list_pt_m)
-    cv2.imwrite(osp.join(save_dir, f'proj_{get_name(args.image)}.png'), im)
+    # ======================================================================== #
+    # < 1 scale >
+    # ======================================================================== #
+    scale_x = 0.171875
+    scale_y = 0.1564792176
+    print(f'>>> {scale_x} * 4096 = {scale_x * 4096.}')
+    print(f'>>> {scale_y} * 2160 = {scale_y * 2160.}')
+    dst_w, dst_h = 704, 337
+    im_1 = cv2.resize(im, (dst_w, dst_h))
+    cv2.imwrite(osp.join(save_dir, f'1_resize_{save_name}.png'), im_1)
+    cam_model_1 = copy.deepcopy(cam_model)
+    cam_model_1.apply_scale_factor(scale_x, scale_y)
+
+    list_pt_m_1 = cam_model_1.project_list_pt_F(pt)
+    print(f'>>> list_pt_m_1: {type(list_pt_m_1)} {list_pt_m_1}')
+    im_1 = write_sample(im_1, list_pt_m_1)
+    cv2.imwrite(osp.join(save_dir, f'2_scale_{save_name}.png'), im_1)
 
 if __name__ == '__main__':
     main(py_file=__file__)
