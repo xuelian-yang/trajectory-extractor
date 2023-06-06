@@ -150,4 +150,5 @@ def main(py_file):
     cv2.imwrite(osp.join(save_dir, f'21_scale-crop-viz_{save_name}.png'), im_2)
 
 if __name__ == '__main__':
+    print(f'>>> cv2.__version__: {cv2.__version__}')
     main(py_file=__file__)

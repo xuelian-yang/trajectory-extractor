@@ -14,10 +14,12 @@ import numpy as np
 import math
 import cv2
 import sys
-import os
+import os.path as osp
 from termcolor import colored
 
 from traj_ext.utils.mathutil import *
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
+from common.util import d_print_y
 
 ###################################################################
 # Camera Util function
@@ -351,12 +353,27 @@ class CameraModel:
         self.cam_matrix = scale_camera_matrix(scale_x, scale_y, self.cam_matrix);
 
     def project_list_pt_F(self, list_pt_F):
-
         pt_img_list = [];
         for pt in list_pt_F:
                 # Project 3Dbox corners on Image Plane
                 pt.shape = (1,3);
                 (pt_img, jacobian) = cv2.projectPoints(pt, self.rot_CF_F, self.trans_CF_F, self.cam_matrix, self.dist_coeffs)
+                enable_check = False
+                if enable_check:
+                    print(f'  >>> self.rot_CF_F:   {self.rot_CF_F.shape}')
+                    print(f'  >>> self.trans_CF_F: {self.trans_CF_F.shape}')
+                    print(f'  >>> self.cam_matrix: {self.cam_matrix.shape}')
+                    print(f'  >>> pt: {pt}')
+                    d_print_y(f'>>> pt_img: {pt_img} {"#"*20}')
+                    pt_0 = np.dot(self.rot_CF_F, pt.T)
+                    print(f'  >>> pt_0: {pt_0.T}')
+                    pt_1 = pt_0 + self.trans_CF_F
+                    print(f'  >>> pt_1: {pt_1.T}')
+                    pt_2 = np.dot(self.cam_matrix, pt_1)
+                    print(f'  >>> pt_2: {pt_2.T}')
+                    pt_3 = pt_2 / pt_2[2]
+                    d_print_y(f'>>> pt_3: {pt_3.T} {pt_3.T.astype(np.int32)}')
+                    # exit(0)
 
                 # Cretae list of tulpe
                 pt_img_tulpe = (int(pt_img[0][0][0]), int(pt_img[0][0][1]));
