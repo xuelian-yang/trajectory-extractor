@@ -18,6 +18,15 @@ python traj_ext/camera_calib/run_detection_zone.py ^
   -camera_sat test_alaco/alaco_cameras/hdmap_0_cfg.yml ^
   -image_sat test_alaco/hdmap_calib/hdmap_0.png ^
   -output_name %camera_ip%
+
+set camera_ip=10.10.145.232
+set camera_targ=10.10.145.233
+python traj_ext/camera_calib/run_detection_zone.py ^
+  -camera_street test_alaco/alaco_cameras/%camera_ip%_cfg.yml ^
+  -image_street test_alaco/hdmap_calib/%camera_ip%.png ^
+  -camera_sat test_alaco/alaco_cameras/%camera_targ%_cfg.yml ^
+  -image_sat test_alaco/hdmap_calib/%camera_targ%.png ^
+  -output_name %camera_ip%
 """
 
 # import the necessary packages
