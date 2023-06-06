@@ -42,7 +42,7 @@ def get_parser():
 
 
 def write_sample(image, px_coords, enable_text=False):
-    color_col = distinctipy.get_colors(len(px_coords))
+    color_col = distinctipy.get_colors(len(px_coords), rng=99991)
     for idx in range(len(px_coords)):
         _color = [int(f * 255.0) for f in color_col[idx]]
         color_col[idx] = _color
@@ -113,25 +113,41 @@ def main(py_file):
     list_pt_m_0 = cam_model.project_list_pt_F(pt)
     print(f'>>> list_pt_m_0: {type(list_pt_m_0)} {list_pt_m_0}')
     im_0 = write_sample(im_0, list_pt_m_0, True)
-    cv2.imwrite(osp.join(save_dir, f'0_initial_{save_name}.png'), im_0)
+    cv2.imwrite(osp.join(save_dir, f'00_initial-viz_{save_name}.png'), im_0)
 
     # ======================================================================== #
     # < 1 scale >
     # ======================================================================== #
     scale_x = 0.171875
-    scale_y = 0.1564792176
+    scale_y = 0.156018519
     print(f'>>> {scale_x} * 4096 = {scale_x * 4096.}')
     print(f'>>> {scale_y} * 2160 = {scale_y * 2160.}')
     dst_w, dst_h = 704, 337
     im_1 = cv2.resize(im, (dst_w, dst_h))
-    cv2.imwrite(osp.join(save_dir, f'1_resize_{save_name}.png'), im_1)
+    cv2.imwrite(osp.join(save_dir, f'10_scale_{save_name}.png'), im_1)
     cam_model_1 = copy.deepcopy(cam_model)
     cam_model_1.apply_scale_factor(scale_x, scale_y)
 
     list_pt_m_1 = cam_model_1.project_list_pt_F(pt)
     print(f'>>> list_pt_m_1: {type(list_pt_m_1)} {list_pt_m_1}')
     im_1 = write_sample(im_1, list_pt_m_1)
-    cv2.imwrite(osp.join(save_dir, f'2_scale_{save_name}.png'), im_1)
+    cv2.imwrite(osp.join(save_dir, f'11_scale-viz_{save_name}.png'), im_1)
+
+    # ======================================================================== #
+    # < 2 scale & crop >
+    # ======================================================================== #
+    crop_w, crop_h = 0, 81
+    im_2 = cv2.resize(im, (dst_w, dst_h))
+    im_2 = im_2[crop_h:, crop_w:, :]
+    cv2.imwrite(osp.join(save_dir, f'20_scale-crop_{save_name}.png'), im_2)
+    cam_model_2 = copy.deepcopy(cam_model)
+    cam_model_2.apply_scale_factor(scale_x, scale_y)
+
+    list_pt_m_2 = cam_model_2.project_list_pt_F(pt)
+    list_pt_m_2 = [(t_w, t_h - crop_h) for t_w, t_h in list_pt_m_2]
+    print(f'>>> list_pt_m_2: {type(list_pt_m_2)} {list_pt_m_2}')
+    im_2 = write_sample(im_2, list_pt_m_2)
+    cv2.imwrite(osp.join(save_dir, f'21_scale-crop-viz_{save_name}.png'), im_2)
 
 if __name__ == '__main__':
     main(py_file=__file__)
