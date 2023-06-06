@@ -112,6 +112,10 @@ def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list):
             cv2.putText(image_1_temp, str(index), pt_image, cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2)
             cv2.circle(image_1_temp, pt_image, 2, (0,0, 255), -1)
 
+        logging.info(f'(0) >>> pos_FNED: {type(pos_FNED)} {pos_FNED}')
+        logging.info(f'(0) >>> pt_image_list: {len(pt_image_list)} {pt_image_list}')
+        logging.info(f'(1) >>> pt_FNED_list_temp: {type(pt_FNED_list_temp)} {len(pt_FNED_list_temp)} {pt_FNED_list_temp}')
+
         if len(pt_FNED_list_temp) > 1:
 
             list_pt_im = cam_model_1.project_list_pt_F(pt_FNED_list_temp);
