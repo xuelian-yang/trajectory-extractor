@@ -3,6 +3,7 @@
 import os
 import os.path as osp
 
+__all__ = ['WorkSpace']
 
 class WorkSpace:
     def __init__(self):

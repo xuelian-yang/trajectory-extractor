@@ -31,11 +31,7 @@ import numpy as np
 import sys
 import os
 import os.path as osp
-import platform
-import scipy.optimize as opt
-import yaml
 import argparse
-import configparser
 import csv
 import shutil
 import time
@@ -45,14 +41,13 @@ sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.tracker.cameramodel import CameraModel
 
 from traj_ext.camera_calib import calib_utils
-from traj_ext.utils import cfgutil
 from traj_ext.utils import mathutil
+from traj_ext.camera_calib.adaptive_win_size import *
 
-from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
-from configs.workspace import WorkSpace
+from common.util import *
+from configs.workspace import *
 
 logger = logging.getLogger(__name__)
-
 
 def write_default_latlon_csv(path_csv):
     csv_open = False;
@@ -246,7 +241,17 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
     im = calib_utils.display_keypoints(im, image_points_reproj, image_points);
 
     # Save image with key-points
-    cv2.imshow("Output", im)
+    win_name = f"Step: run_calib_manual( {osp.basename(image_path) })"
+    win_scale = find_scale(im)
+    im_h, im_w, _ = im.shape
+    win_w = im_w // win_scale
+    win_h = im_h // win_scale
+
+    cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(win_name, win_w, win_h)
+    cv2.moveWindow(win_name, 0, 0)
+
+    cv2.imshow(win_name, im)
 
     print("\nInstruction:")
     print("    - Press Enter to save the calibration file")

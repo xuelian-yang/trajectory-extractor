@@ -13,11 +13,16 @@ from termcolor import colored
 import time
 import traceback
 
+__all__ = ['d_print', 'd_print_r', 'd_print_g', 'd_print_b', 'd_print_y',
+           'get_name', 'save_json', 'setup_log',
+           'itti_argparse', 'itti_debug', 'itti_main', 'itti_timer', 'itti_traceback',
+           'Profile']
+
 isWindows = (platform.system() == "Windows")
 
 
-def d_print(text):
-    print(colored(text, 'cyan'))
+def d_print(text, color='cyan', on_color=None):
+    print(colored(text, color, on_color))
 
 def d_print_r(text):
     print(colored(text, 'red'))

@@ -26,7 +26,7 @@ set feat_name_cam=feature_points_%png_name_cam%
 set png_name_hd=hdmap_0
 set feat_name_hd=feature_points_%png_name_hd%
 
-:: 注: 操作完不停地按 Enter 键保存
+:: 注: 操作完不停地按 Enter 键保存 (手动选取检测区域 阶段 除外)
 
 :: 生成标定输入
 python traj_ext/camera_calib/calib_feature_parser.py ^

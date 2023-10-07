@@ -41,37 +41,23 @@ import numpy as np
 from termcolor import colored
 import time
 import copy
-from scipy.optimize import linear_sum_assignment
-import configparser
 
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.tracker.cameramodel import CameraModel
-
-from traj_ext.utils import cfgutil
-from traj_ext.utils import mathutil
+from traj_ext.camera_calib.adaptive_win_size import *
 
 from traj_ext.camera_calib import calib_utils
 from traj_ext.object_det import det_object
 from traj_ext.utils import det_zone
 
-from common.util import setup_log, get_name
-from configs.workspace import WorkSpace
+from common.util import *
+from configs.workspace import *
 
 logger = logging.getLogger(__name__)
 isWindows = (platform.system() == "Windows")
 isLinux = (platform.system() == "Linux")
 
-windows, win_w, win_h = [], 1920, 1080
-names = ["image_1", "image_2"]
-for win_name in names:
-    if win_name not in windows:
-        windows.append(win_name)
-        if isWindows:
-            cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL)
-        else:
-            cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
-        cv2.resizeWindow(str(win_name), win_w, win_h)
-
+names = ['Step: run_detection_zone - image_1', 'Step: run_detection_zone - image_2']
 
 def click(event, x, y, flags, param ):
     # logger.info(f'click(..)')
@@ -90,11 +76,11 @@ def click(event, x, y, flags, param ):
         pt_image = (x, y)
         pt_image_list.append(pt_image);
 
-        draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list);
+        draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list, names[0], names[1]);
     return
 
 
-def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list):
+def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list, win_name1, win_name2):
     logger.info(f'draw_image(..)')
 
     if not (cam_model_1 is None)  and  not (image_2 is None) and not (cam_model_2 is None):
@@ -126,8 +112,9 @@ def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list):
             mask_2 = det_object.create_mask_image((image_2_temp.shape[0], image_2_temp.shape[1]), list_pt_im);
             det_object.draw_mask(image_2_temp, mask_2, (0,0,255));
 
-        cv2.imshow("image_2", image_2_temp)
-        cv2.imshow("image_1", image_1_temp)
+        cv2.imshow(win_name2, image_2_temp)
+        cv2.imshow(win_name1, image_1_temp)
+
     else:
         image_1_temp = copy.copy(image_1);
 
@@ -141,7 +128,8 @@ def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list):
         mask_1 = det_object.create_mask_image((image_1_temp.shape[0], image_1_temp.shape[1]), list_pt_im);
         det_object.draw_mask(image_1_temp, mask_1, (0,0,255));
 
-        cv2.imshow("image_1", image_1_temp)
+        # cv2.imshow("image_1", image_1_temp)
+        cv2.imshow(win_name1, image_1_temp)
 
 
 def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_path, image_sat_path, output_name, save_dir):
@@ -185,16 +173,38 @@ def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_p
         return;
 
     # Create windows
-    cv2.namedWindow("image_1")
+    win_scale_1 = find_scale(image_1, 2)
+    win_scale = win_scale_1
+    if image_2 is not None:
+        win_scale_2 = find_scale(image_2, 2)
+        win_scale = max(win_scale_1, win_scale_2)
+
+    im_h_1, im_w_1, _ = image_1.shape
+    win_w_1 = im_w_1 // win_scale
+    win_h_1 = im_h_1 // win_scale
+
+    win_name_1 = names[0]
+    win_name_2 = names[1]
+
+    cv2.namedWindow(win_name_1, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(win_name_1, win_w_1, win_h_1)
+    cv2.moveWindow(win_name_1, 0, 0)
+
     if not (image_2 is None):
-        cv2.namedWindow("image_2")
+        im_h_2, im_w_2, _ = image_2.shape
+        win_w_2 = im_w_2 // win_scale
+        win_h_2 = im_h_2 // win_scale
+
+        cv2.namedWindow(win_name_2, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(win_name_2, win_w_2, win_h_2)
+        cv2.moveWindow(win_name_2, 1920 // 2, 0)
 
     pt_image_list = [];
-    cv2.setMouseCallback("image_1", click, param=(pt_image_list, cam_model_1, image_1, cam_model_2, image_2))
+    cv2.setMouseCallback(win_name_1, click, param=(pt_image_list, cam_model_1, image_1, cam_model_2, image_2))
 
-    cv2.imshow("image_1", image_1)
+    cv2.imshow(win_name_1, image_1)
     if not (image_2 is None):
-        cv2.imshow("image_2", image_2)
+        cv2.imshow(win_name_2, image_2)
 
     # keep looping until the 'q' key is pressed
     save_zone = False;
@@ -213,7 +223,7 @@ def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_p
         elif key == ord("d"):
             if len(pt_image_list) > 0:
                 pt_image_list.pop();
-                draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list);
+                draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list, win_name_1, win_name_2);
 
     # Make sure there is enough point
     if not len(pt_image_list) > 2:

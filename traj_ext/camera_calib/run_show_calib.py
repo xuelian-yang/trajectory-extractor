@@ -18,40 +18,27 @@ import argparse
 import cv2
 import logging
 import sys
-import os
 import os.path as osp
 import platform
 import numpy as np
 from termcolor import colored
 import time
 import copy
-from scipy.optimize import linear_sum_assignment
-import configparser
 
 sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
 from traj_ext.tracker import cameramodel
 from traj_ext.utils import det_zone
 
-from common.util import setup_log, d_print, get_name, d_print_b, d_print_g, d_print_r, d_print_y
-from configs.workspace import WorkSpace
+from common.util import *
+from configs.workspace import *
+from traj_ext.camera_calib.adaptive_win_size import *
 
 logger = logging.getLogger(__name__)
 isWindows = (platform.system() == "Windows")
 
-windows, win_w, win_h = [], 1920, 1080
-names = ["image_1"]
-for win_name in names:
-    if win_name not in windows:
-        windows.append(win_name)
-        if isWindows:
-            cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL)
-        else:
-            cv2.namedWindow(str(win_name), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
-        cv2.resizeWindow(str(win_name), win_w, win_h)
-
+names = ['Step: run_show_calib - image_1']
 
 def click(event, x, y, flags, param ):
-
     # if the left mouse button was clicked, record the starting
     # (x, y) coordinates and indicate that cropping is being
     # performed
@@ -65,12 +52,10 @@ def click(event, x, y, flags, param ):
         pt_image = (x, y)
         pt_image_list.append(pt_image);
 
-        draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED);
+        draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED, names[0]);
     return
 
-
-def draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED = None):
-
+def draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED = None, win_name=names[0]):
     if not (cam_model_1 is None):
         image_1_temp = copy.copy(image_1);
 
@@ -79,7 +64,6 @@ def draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED = None):
         pt_origin = cam_model_1.project_points(np.array([0.0,0.0,0.0]));
         cv2.circle(image_1_temp, (pt_origin[0], pt_origin[1]), 2, (0,255, 255), -1)
         print('Point Origin: {} FNED: {}'.format(pt_origin, np.array([0.0,0.0,0.0]).transpose()));
-
 
         pt_FNED_list_temp = [];
         for index, pt_image in enumerate(pt_image_list):
@@ -94,15 +78,12 @@ def draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED = None):
 
             print('Point {}: {} FNED: {}'.format(index, pt_image, pos_FNED.transpose()));
 
-
         # Draw det zone:
         if not (det_zone_FNED is None):
             det_zone_FNED.display_on_image(image_1_temp, cam_model_1);
-        cv2.imshow("image_1", image_1_temp)
-
+        cv2.imshow(win_name, image_1_temp)
 
 def main():
-
     # Print instructions
     print("############################################################")
     print("Camera Calibration viewer")
@@ -148,24 +129,29 @@ def main():
         print('\n[Error]: camera_img_sat_path is not valid: {}'.format(args.image));
         return;
 
-
     # Det zone:
     det_zone_FNED = None;
     if args.detection_zone:
         det_zone_FNED = det_zone.DetZoneFNED.read_from_yml(args.detection_zone);
 
     # Create windows
-    cv2.namedWindow("image_1")
+    win_name = names[0]
+    win_scale = find_scale(image_1)
+    im_h, im_w, _ = image_1.shape
+    win_w = im_w // win_scale
+    win_h = im_h // win_scale
+    cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(win_name, win_w, win_h)
+    cv2.moveWindow(win_name, 0, 0)
 
     pt_image_list = [];
-    cv2.setMouseCallback("image_1", click, param=(pt_image_list, cam_model_1, image_1, det_zone_FNED))
+    cv2.setMouseCallback(win_name, click, param=(pt_image_list, cam_model_1, image_1, det_zone_FNED))
 
-    draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED);
+    draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED, win_name)
 
     # keep looping until the 'q' key is pressed
     save = False;
     while True:
-
         # display the image and wait for a keypress
         key = cv2.waitKey(1) & 0xFF
         # if key == ord("c"):
@@ -180,12 +166,10 @@ def main():
         elif key == ord("d"):
             if len(pt_image_list) > 0:
                 pt_image_list.pop();
-                draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED);
-
+                draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED, win_name)
 
     print("Program Exit\n")
     print("############################################################\n")
-
 
 if __name__ == '__main__':
     time_beg = time.time()
