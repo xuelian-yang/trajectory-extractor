@@ -154,27 +154,22 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
     image_points = np.zeros([1,2], dtype="double");
     first_init = True;
     for data in data_csv:
-
         if first_init:
             image_points[0,:] = (data['pixel_x'], data['pixel_y']);
             first_init = False;
-
         else:
-
             d = np.array([[data['pixel_x'], data['pixel_y']]], dtype= 'double');
             image_points = np.append( image_points, d , axis=0);
 
 
     # In lat/lon mode, input are given in Latitude/Longitude (degrees)
     if csv_latlon:
-
         # Create the latlon points vector from csv
         latlon_points = np.zeros([1,2], dtype="double");
         first_init = True;
 
         # Go through line of the csv
         for data in data_csv:
-
             # For the first line, fill directly the first row of latlon_points
             if first_init:
                 latlon_points[0,:] = (data['lat_deg'], data['lon_deg']);
@@ -188,9 +183,7 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
 
         # Convert the lat-lon array in F_NED array of points
         model_points_F = calib_utils.convert_latlon_F(latlon_origin, latlon_points);
-
     else:
-
         # Create the model_points_F points vector from csv
         model_points_F = np.zeros([1,3], dtype="double");
         first_init = True;
@@ -199,9 +192,7 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
             if first_init:
                 model_points_F[0,:] = (data['pos_x'], data['pos_y'], 0.0);
                 first_init = False;
-
             else:
-
                 d = np.array([[data['pos_x'], data['pos_y'], 0.0]], dtype= 'double');
                 model_points_F = np.append( model_points_F, d , axis=0);
 
@@ -220,25 +211,23 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
     im_size = im.shape; # Getting Image size
     rot_vec_CF_F, trans_CF_F, camera_matrix, dist_coeffs, image_points_reproj = calib_utils.find_camera_params_opt(im_size, image_points, model_points_F, sat_mode);
 
+    image_name = osp.basename(image_path)
+    d_print(f'\n===== calib result of {image_name} =====', 'yellow')
+
     # Convert rotation vector in rotation matrix
-    rot_CF_F = cv2.Rodrigues(rot_vec_CF_F)[0];
-    print('rot_CF_F: ')
-    print(rot_CF_F)
+    rot_CF_F = cv2.Rodrigues(rot_vec_CF_F)[0]
+    d_print(f'  >> rot_CF_F: \n{rot_CF_F}\n', 'blue')
 
     # Convert rotation matrix in euler angle:
-    euler_CF_F = mathutil.rotationMatrixToEulerAngles(rot_CF_F);
-    print('euler_CF_F: ')
-    print(euler_CF_F)
+    euler_CF_F = mathutil.rotationMatrixToEulerAngles(rot_CF_F)
+    d_print(f'  >> euler_CF_F: \n{euler_CF_F}\n', 'yellow')
 
     # Position of the origin expresssed in CF
-    print('trans_CF_F (position of the origin expressed in CF): ')
-    print(trans_CF_F);
+    d_print(f'  >> trans_CF_F (position of the origin expressed in CF): \n{trans_CF_F}\n', 'green')
 
-    cam_model = CameraModel(rot_CF_F, trans_CF_F, camera_matrix, dist_coeffs);
-
-    im = cam_model.display_NED_frame(im);
-
-    im = calib_utils.display_keypoints(im, image_points_reproj, image_points);
+    cam_model = CameraModel(rot_CF_F, trans_CF_F, camera_matrix, dist_coeffs)
+    im = cam_model.display_NED_frame(im)
+    im = calib_utils.display_keypoints(im, image_points_reproj, image_points)
 
     # Save image with key-points
     win_name = f"Step: run_calib_manual( {osp.basename(image_path) })"

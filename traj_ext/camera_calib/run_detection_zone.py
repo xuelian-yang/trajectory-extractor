@@ -84,8 +84,9 @@ def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list, win_na
     logger.info(f'draw_image(..)')
 
     if not (cam_model_1 is None)  and  not (image_2 is None) and not (cam_model_2 is None):
-        image_1_temp = copy.copy(image_1);
-        image_2_temp = copy.copy(image_2);
+        # image_1_temp = copy.copy(image_1);
+        # image_2_temp = copy.copy(image_2);
+        image_1_temp, image_2_temp = image_1, image_2
 
         pt_FNED_list_temp = [];
         for index, pt_image in enumerate(pt_image_list):
@@ -96,7 +97,7 @@ def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list, win_na
 
             # Show mask of the region of interest
             cv2.putText(image_1_temp, str(index), pt_image, cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2)
-            cv2.circle(image_1_temp, pt_image, 2, (0,0, 255), -1)
+            cv2.circle(image_1_temp, pt_image, 2, (0, 0, 255), -1)
 
         logging.info(f'(0) >>> pos_FNED: {type(pos_FNED)} {pos_FNED}')
         logging.info(f'(0) >>> pt_image_list: {len(pt_image_list)} {pt_image_list}')
@@ -106,17 +107,18 @@ def draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list, win_na
 
             list_pt_im = cam_model_1.project_list_pt_F(pt_FNED_list_temp);
             mask_1 = det_object.create_mask_image((image_1_temp.shape[0], image_1_temp.shape[1]), list_pt_im);
-            det_object.draw_mask(image_1_temp, mask_1, (0,0,255));
+            det_object.draw_mask(image_1_temp, mask_1, (255, 0, 255))
 
             list_pt_im = cam_model_2.project_list_pt_F(pt_FNED_list_temp);
             mask_2 = det_object.create_mask_image((image_2_temp.shape[0], image_2_temp.shape[1]), list_pt_im);
-            det_object.draw_mask(image_2_temp, mask_2, (0,0,255));
+            det_object.draw_mask(image_2_temp, mask_2, (255, 0, 255))
 
         cv2.imshow(win_name2, image_2_temp)
         cv2.imshow(win_name1, image_1_temp)
 
     else:
-        image_1_temp = copy.copy(image_1);
+        # image_1_temp = copy.copy(image_1);
+        image_1_temp = image_1
 
         for index, pt_image in enumerate(pt_image_list):
 
@@ -224,6 +226,12 @@ def run_detection_zone(cam_model_street_path, image_street_path, cam_model_sat_p
             if len(pt_image_list) > 0:
                 pt_image_list.pop();
                 draw_image(image_1, image_2, cam_model_1, cam_model_2, pt_image_list, win_name_1, win_name_2);
+
+    # save image
+    save_name = osp.join(save_dir, f'run_detection_zone_{osp.basename(image_street_path)}')
+    cv2.imwrite(save_name, image_1)
+    save_name = osp.join(save_dir, f'run_detection_zone_{osp.basename(image_sat_path)}')
+    cv2.imwrite(save_name, image_2)
 
     # Make sure there is enough point
     if not len(pt_image_list) > 2:

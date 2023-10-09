@@ -18,6 +18,7 @@ import argparse
 import cv2
 import logging
 import sys
+import os
 import os.path as osp
 import platform
 import numpy as np
@@ -82,6 +83,7 @@ def draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED = None, win_na
         if not (det_zone_FNED is None):
             det_zone_FNED.display_on_image(image_1_temp, cam_model_1);
         cv2.imshow(win_name, image_1_temp)
+        return image_1_temp
 
 def main():
     # Print instructions
@@ -106,6 +108,13 @@ def main():
         '-d', '--detection_zone',
         help='Detection Zone')
     args = argparser.parse_args();
+    for item in vars(args):
+        logger.info(f'{item:20s} : {getattr(args, item)}')
+
+    ws = WorkSpace()
+    save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
+    if not osp.exists(save_dir):
+        os.makedirs(save_dir)
 
     # ##########################################################
     # # Read config file:
@@ -147,7 +156,7 @@ def main():
     pt_image_list = [];
     cv2.setMouseCallback(win_name, click, param=(pt_image_list, cam_model_1, image_1, det_zone_FNED))
 
-    draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED, win_name)
+    image_1 = draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED, win_name)
 
     # keep looping until the 'q' key is pressed
     save = False;
@@ -166,7 +175,11 @@ def main():
         elif key == ord("d"):
             if len(pt_image_list) > 0:
                 pt_image_list.pop();
-                draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED, win_name)
+                image_1 = draw_image(image_1, cam_model_1, pt_image_list, det_zone_FNED, win_name)
+
+    # 保存结果
+    save_name = osp.join(save_dir, f'run_show_calib_{osp.basename(args.image)}')
+    cv2.imwrite(save_name, image_1)
 
     print("Program Exit\n")
     print("############################################################\n")

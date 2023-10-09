@@ -27,10 +27,10 @@ def find_scale(img, n_win=1):
     if n_win > 1:
         scale_int *= 2  # 需显示多个窗口
 
-    d_print(f'>> img: {img.shape}, n_win: {n_win}', 'green')
-    d_print(f'  >> scale_h:   {scale_h}')
-    d_print(f'  >> scale_w:   {scale_w}')
-    d_print(f'  >> scale:     {scale}', 'yellow')
-    d_print(f'  >> scale_int: {scale_int}', 'red')
+    # d_print(f'>> img: {img.shape}, n_win: {n_win}', 'green')
+    # d_print(f'  >> scale_h:   {scale_h}')
+    # d_print(f'  >> scale_w:   {scale_w}')
+    # d_print(f'  >> scale:     {scale}', 'yellow')
+    # d_print(f'  >> scale_int: {scale_int}', 'red')
 
     return scale_int
