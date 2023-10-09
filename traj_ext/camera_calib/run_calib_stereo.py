@@ -228,7 +228,7 @@ def main():
     im = display_NED_frame(im, rot_vec_CF_F, trans_CF_F, camera_matrix, dist_coeffs);
 
     #Show the keypoints
-    im = display_keypoints(im, image_points_reproj, image_points);
+    im, _ = display_keypoints(im, image_points_reproj, image_points)
 
 
     cv2.imshow("Output", im)

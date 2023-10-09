@@ -7,15 +7,13 @@
 import cv2
 import numpy as np
 import sys
-import os
+import os.path as osp
 import scipy.optimize as opt
-import yaml
-import argparse
-import configparser
-import csv
 
 from traj_ext.utils import mathutil
-from traj_ext.tracker import cameramodel as cm
+
+sys.path.append(osp.abspath(osp.join(osp.dirname(__file__), '../..')))
+from common.util import *
 
 def split(u, v, points):
     # return points on left side of UV
@@ -46,13 +44,13 @@ def func_cons(opti_params):
     return focal_length;
 
 
-def func(opti_params, im_size, image_points, model_points_F):
+def func(opti_params, im_size, image_points, model_points_F, cam_name, enable_undistort):
 
     # Camera internals
     focal_length = opti_params[0]
 
     # Find camera parms
-    rot_vec_CF_F, trans_CF_F, camera_matrix, dist_coeffs, image_points_reproj = find_camera_params(im_size, focal_length, image_points, model_points_F);
+    rot_vec_CF_F, trans_CF_F, camera_matrix, dist_coeffs, image_points_reproj = find_camera_params(im_size, focal_length, image_points, model_points_F, cam_name, enable_undistort);
 
     # Compute error
     error_reproj = np.linalg.norm(np.subtract(image_points_reproj, image_points));
@@ -60,7 +58,7 @@ def func(opti_params, im_size, image_points, model_points_F):
     return error_reproj;
 
 
-def find_camera_params_opt(im_size, image_points, model_points_F, satellite_mode = False):
+def find_camera_params_opt(im_size, image_points, model_points_F, cam_name, enable_undistort, satellite_mode = False):
 
     # Pin-hole camera model: https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
     # Important to understand the Pin-Hole camera model:
@@ -81,7 +79,7 @@ def find_camera_params_opt(im_size, image_points, model_points_F, satellite_mode
     # If not in satellite mode, also estimate the focal_lenght
     if not (satellite_mode):
         # Run the optimization to find the optimal parameters
-        param = opt.minimize(func, p_init, constraints=cons, args=(im_size, image_points, model_points_F))
+        param = opt.minimize(func, p_init, constraints=cons, args=(im_size, image_points, model_points_F, cam_name, enable_undistort))
         focal_length = param.x[0]
 
     # Set the focal_lenght in sattelite mode to avoid ambiguity in the optimization
@@ -89,7 +87,7 @@ def find_camera_params_opt(im_size, image_points, model_points_F, satellite_mode
         focal_length = (im_size[0]);
 
     # Find camera parms
-    rot_vec_CF_F, trans_CF_F, camera_matrix, dist_coeffs, image_points_reproj = find_camera_params(im_size, focal_length, image_points, model_points_F);
+    rot_vec_CF_F, trans_CF_F, camera_matrix, dist_coeffs, image_points_reproj = find_camera_params(im_size, focal_length, image_points, model_points_F, cam_name, enable_undistort)
 
     # Compute error
     error_reproj = np.linalg.norm(np.subtract(image_points_reproj, image_points));
@@ -103,7 +101,54 @@ def find_camera_params_opt(im_size, image_points, model_points_F, satellite_mode
 
     return rot_vec_CF_F, trans_CF_F, camera_matrix, dist_coeffs, image_points_reproj;
 
-def find_camera_params(im_size, focal_length, image_points, model_points_F):
+def load_intrinsic_default(cam_name):
+    """ 读取预标定好的相机内参
+    由 ../gui_module/calib_core.py 生成
+    """
+    succ = True
+    mtx, dist = None, None
+    # 填充内参及畸变系数
+    if cam_name == 'A_W_231':
+        mtx = np.array(
+            [[4.63200849e+03, 0.00000000e+00, 2.04417817e+03],
+                [0.00000000e+00, 4.63270381e+03, 1.15794548e+03],
+                [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]],
+            dtype=np.float64)
+        dist = np.array(
+            [[-4.99835993e-01],  [7.80738347e-01],  [7.39888739e-04], [-4.47371462e-04], [-1.95261368e+00]],
+            dtype=np.float64)
+    elif cam_name == 'B_E_232':
+        mtx = np.array(
+            [[4.61387542e+03, 0.00000000e+00, 2.04260043e+03],
+                [0.00000000e+00, 4.61293269e+03, 1.01555803e+03],
+                [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]],
+            dtype=np.float64)
+        dist = np.array(
+            [[-5.47785313e-01],  [1.21307520e+00], [2.00770261e-03], [-9.97803869e-04], [-3.15329884e+00]],
+            dtype=np.float64)
+    elif cam_name == 'C_S_233':
+        mtx = np.array(
+            [[4.64681608e+03, 0.00000000e+00, 2.05671269e+03],
+                [0.00000000e+00, 4.64880939e+03, 1.11499109e+03],
+                [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]],
+            dtype=np.float64)
+        dist = np.array(
+            [[-4.90232814e-01],  [6.80283772e-01],  [2.03555887e-04],  [1.48626632e-04], [-1.68401814e+00]],
+            dtype=np.float64)
+    elif cam_name == 'D_N_234':
+        mtx = np.array(
+            [[4.62872252e+03, 0.00000000e+00, 2.08329964e+03],
+                [0.00000000e+00, 4.62912711e+03, 1.11627799e+03],
+                [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]],
+            dtype=np.float64)
+        dist = np.array(
+            [[-4.80737428e-01],  [6.19535464e-01], [-6.77668774e-05],  [4.40989113e-04], [-1.52697794e+00]],
+            dtype=np.float64)
+    else:
+        succ = False
+    return succ, mtx, dist
+
+def find_camera_params(im_size, focal_length, image_points, model_points_F, cam_name, enable_undistort):
 
     # Pin-hole camera model: https://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
     # Important to understand the Pin-Hole camera model:
@@ -123,11 +168,28 @@ def find_camera_params(im_size, focal_length, image_points, model_points_F):
                              )
 
     # Assuming no lens distortion
-    dist_coeffs = np.zeros((4,1))
+    dist_coeffs = np.zeros((5, 1))
+    if enable_undistort:
+        succ, mtx, dist = load_intrinsic_default(cam_name)
+        if succ:
+            camera_matrix = mtx
+            dist_coeffs = dist
+
+    # # TODO: 适配其它相机
+    # # 东向相机 - 'B_E_232'
+    # camera_matrix = np.array(
+    #     [[4.61387542e+03, 0.00000000e+00, 2.04260043e+03],
+    #         [0.00000000e+00, 4.61293269e+03, 1.01555803e+03],
+    #         [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]],
+    #     dtype=np.float64)
+    # dist_coeffs = np.array(
+    #     [[-5.47785313e-01],  [1.21307520e+00],  [2.00770261e-03], [-9.97803869e-04], [-3.15329884e+00]],
+    #     dtype=np.float64)
 
     # Use solvePnP to compute the camera rotation and position from the 2D - 3D point corespondance
     (success, rot_vec_CF_F, trans_CF_F) = cv2.solvePnP(model_points_F, image_points, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_ITERATIVE)
-
+    # d_print(f'\n===== solvePnP result =====', 'red')
+    # d_print(f'  >> success: {success} @ [{__file__}:{line_no()}', 'yellow')
 
     # points_F_list = [];
     # for i in range(model_points_F.shape[0]):
@@ -177,4 +239,16 @@ def display_keypoints(image, image_points_reproj, image_points):
     for i in range(0, image_points_reproj.shape[0]):
         cv2.circle(image, (int(image_points_reproj[i][0]), int(image_points_reproj[i][1])), 5, (0,255, 255), 2)
 
-    return image
+    # 计算重投影误差
+    # d_print(f'>> image_points:        {image_points.dtype} {image_points.shape}')
+    # d_print(f'>> image_points_reproj: {image_points_reproj.dtype} {image_points_reproj.shape}')
+    err = np.linalg.norm(image_points_reproj - image_points)
+    # d_print(f'{len(image_points)}')
+    mean_err = np.sqrt(err ** 2 / len(image_points))
+    d_print(f'>> mean_err: {mean_err} @ [{__file__}:{line_no()}', 'yellow')
+    dis = np.linalg.norm(image_points_reproj - image_points, axis=1)
+    mean_dis = np.average(dis)
+    d_print(f'>> dis: {dis.shape} {dis.dtype}\n{dis}')
+    d_print(f'>> mean_dis: {mean_dis}', 'red')
+
+    return image, mean_dis

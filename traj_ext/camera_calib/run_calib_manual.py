@@ -126,7 +126,7 @@ def read_csv(csv_path):
     return data_list
 
 
-def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, auto_save = False):
+def run_calib_manual(calib_points_path, image_path, sat_mode, cam_name, enable_undistort, output_folder, auto_save = False):
     logger.info(f'run_calib_manual({calib_points_path}, {image_path}, {sat_mode}, {output_folder}, {auto_save})')
     ###################################################################
     # INPUT VALUES
@@ -209,10 +209,11 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
     # Project a 3D point (0, 0, 1000.0) onto the image plane.
     # We use this to draw a line sticking out of the nose
     im_size = im.shape; # Getting Image size
-    rot_vec_CF_F, trans_CF_F, camera_matrix, dist_coeffs, image_points_reproj = calib_utils.find_camera_params_opt(im_size, image_points, model_points_F, sat_mode);
+    rot_vec_CF_F, trans_CF_F, camera_matrix, dist_coeffs, image_points_reproj = calib_utils.find_camera_params_opt(im_size, image_points, model_points_F, cam_name, enable_undistort, sat_mode);
 
     image_name = osp.basename(image_path)
-    d_print(f'\n===== calib result of {image_name} =====', 'yellow')
+    d_print(f'\n===== calib result of {image_name} @ {osp.basename(__file__)} =====', 'yellow')
+    d_print(f'\n>> model_points_F: {model_points_F.dtype} {model_points_F.shape}\n{model_points_F}\n', 'yellow')
 
     # Convert rotation vector in rotation matrix
     rot_CF_F = cv2.Rodrigues(rot_vec_CF_F)[0]
@@ -227,10 +228,15 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
 
     cam_model = CameraModel(rot_CF_F, trans_CF_F, camera_matrix, dist_coeffs)
     im = cam_model.display_NED_frame(im)
-    im = calib_utils.display_keypoints(im, image_points_reproj, image_points)
+    im, error_reproj = calib_utils.display_keypoints(im, image_points_reproj, image_points)
+    cam_model.set_reproj_err(error_reproj)  # 重投影误差
+
+    desc = 'distort'
+    if enable_undistort:
+        desc = 'undistort'
 
     # Save image with key-points
-    win_name = f"Step: run_calib_manual( {osp.basename(image_path) })"
+    win_name = f"Step: run_calib_manual( {osp.basename(image_path)} - {desc}, reproj_error: {error_reproj} )"
     win_scale = find_scale(im)
     im_h, im_w, _ = im.shape
     win_w = im_w // win_scale
@@ -272,9 +278,9 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
             print('[Error]: Copying point file: {}'.format(e))
 
         # Save the camera model
-        cam_file_name = image_path.split('/')[-1];
+        initial_cam_file_name = image_path.split('/')[-1];
         # cam_file_name = cam_file_name.split('.')[0] + '_cfg.yml';
-        cam_file_name = osp.splitext(cam_file_name)[0] + '_cfg.yml'
+        cam_file_name = osp.splitext(initial_cam_file_name)[0] + f'_{desc}_cfg.yml'
         output_path = os.path.join(output_folder, cam_file_name);
 
         cam_model.save_to_yml(output_path);
@@ -282,7 +288,7 @@ def run_calib_manual(calib_points_path, image_path, sat_mode, output_folder, aut
         # Save the camera model
         im_calib_file_name = image_path.split('/')[-1];
         # im_calib_file_name = cam_file_name.split('.')[0] + '_calib.png';
-        im_calib_file_name = osp.splitext(cam_file_name)[0] + '_cfg_calib.png'
+        im_calib_file_name = osp.splitext(initial_cam_file_name)[0] + f'_{desc}_cfg_calib.png'
 
         im_calib_path = os.path.join(output_folder, im_calib_file_name);
         cv2.imwrite(im_calib_path, im );
@@ -328,8 +334,18 @@ def main():
         '-output_folder', dest="output_folder_path",
         default='',
         help='Output folder')
+    argparser.add_argument(
+        '-camera_name', dest="cam_name",
+        default='hdmap',
+        help='Camera name for load default intrinsic parameters')  # 相机名称，用于加载对应的内参
+    argparser.add_argument(
+        '-undistort', dest="enable_undistort",
+        default='distort',
+        help='distort / undistort')  # 是否使用预设的相机内参
 
     args = argparser.parse_args();
+    for item in vars(args):
+        logger.info(f'{item:20s} : {getattr(args, item)}')
 
     ws = WorkSpace()
     save_dir = osp.join(ws.get_temp_dir(), get_name(__file__))
@@ -352,7 +368,11 @@ def main():
 
     # Run camera calibration
     # run_calib_manual(args.calib_points_path, args.image_path, args.satellite_mode, args.output_folder_path)
-    run_calib_manual(args.calib_points_path, args.image_path, args.satellite_mode, save_dir)
+    mode = False
+    d_print(f'>> args.enable_undistort: {type(args.enable_undistort)} {args.enable_undistort}', 'yellow')
+    if args.enable_undistort.lower() == 'undistort':
+        mode = True
+    run_calib_manual(args.calib_points_path, args.image_path, args.satellite_mode, args.cam_name, mode, save_dir)
 
 
 if __name__ == '__main__':

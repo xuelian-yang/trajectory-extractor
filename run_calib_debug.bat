@@ -7,7 +7,7 @@ Rem https://www.tutorialspoint.com/batch_script/batch_script_commands.htm
 echo.
 call :text_debug "============================================================="
 
-set message="run_calib @ windows"
+set message="run_calib_debug @ windows"
 call :header_warn %message%
 
 
@@ -43,27 +43,6 @@ python traj_ext/camera_calib/run_calib_manual.py ^
   -image %alaco_input_dir%/%png_name_cam%%png_ext% ^
   -camera_name %cam_name% ^
   -undistort %mode%
-
-python traj_ext/camera_calib/run_calib_manual.py ^
-  -calib_points %alaco_temp_dir%/%feat_name_hd%%json_ext%_camera_calib_manual_latlon.csv ^
-  -image %alaco_input_dir%/%png_name_hd%%png_ext%
-
-
-:: 手动选取检测区域
-python traj_ext/camera_calib/run_detection_zone.py ^
-  -camera_street %temp_path%/run_calib_manual/%png_name_cam%_%mode%_cfg.yml ^
-  -image_street %alaco_input_dir%/%png_name_cam%%png_ext% ^
-  -camera_sat %temp_path%/run_calib_manual/%png_name_hd%_distort_cfg.yml ^
-  -image_sat %alaco_input_dir%/%png_name_hd%%png_ext% ^
-  -output_name %png_name_cam%
-
-
-:: 显示 ROI 区域
-python traj_ext/camera_calib/run_show_calib.py ^
-  --camera_calib %temp_path%/run_calib_manual/%png_name_cam%_%mode%_cfg.yml ^
-  --image %alaco_input_dir%/%png_name_cam%.png ^
-  --detection_zone %temp_path%/run_detection_zone/%png_name_cam%_detection_zone.yml
-
 
 :: =============================================================================
 :: 计时结束

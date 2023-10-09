@@ -282,9 +282,14 @@ class CameraModel:
             raise ValueError('Camera Model: cam_matrix size error', cam_matrix.shape)
         self.cam_matrix = cam_matrix;
 
-        if dist_coeffs.shape != (4,1):
+        if dist_coeffs.shape != (5,1):
             raise ValueError('Camera Model: dist_coeffs size error', dist_coeffs.shape);
         self.dist_coeffs = dist_coeffs; # Not use for now, assumed to be 0
+
+        self.reprojection_error = 0.0
+
+    def set_reproj_err(self, err):
+        self.reprojection_error = err
 
     @classmethod
     def read_from_yml(cls, input_path):
@@ -328,6 +333,7 @@ class CameraModel:
         fs_write.write('trans_CF_F', self.trans_CF_F);
         fs_write.write('camera_matrix', self.cam_matrix);
         fs_write.write('dist_coeffs', self.dist_coeffs);
+        fs_write.write('mean_err', self.reprojection_error)
         fs_write.release()
         logging.info(f'Camera config file saved {output_path}')
         print(colored(f'Camera config file saved {output_path}', 'yellow'))

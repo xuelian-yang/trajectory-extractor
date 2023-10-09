@@ -4,6 +4,7 @@ import argparse
 import contextlib
 import datetime
 import functools
+import inspect
 import json
 import logging
 import os
@@ -14,7 +15,7 @@ import time
 import traceback
 
 __all__ = ['d_print', 'd_print_r', 'd_print_g', 'd_print_b', 'd_print_y',
-           'get_name', 'save_json', 'setup_log',
+           'get_name', 'line_no', 'save_json', 'setup_log',
            'itti_argparse', 'itti_debug', 'itti_main', 'itti_timer', 'itti_traceback',
            'Profile']
 
@@ -41,6 +42,9 @@ def get_name(path):
     name, _ = osp.splitext(osp.basename(path))
     return name
 
+def line_no():
+    """Returns the current line number in our program."""
+    return inspect.currentframe().f_back.f_lineno
 
 def save_json(data, path):
     dirname = osp.dirname(path)
