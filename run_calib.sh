@@ -13,6 +13,10 @@ json_ext=".json"
 png_ext=".png"
 
 png_name_cam="10.10.145.232"
+# A_W_231
+# B_E_232
+# C_S_233
+# D_N_234
 cam_name="B_E_232"
 mode="undistort"
 feat_name_cam="feature_points_"${png_name_cam}

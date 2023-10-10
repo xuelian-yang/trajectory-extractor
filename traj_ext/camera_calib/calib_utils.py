@@ -170,21 +170,11 @@ def find_camera_params(im_size, focal_length, image_points, model_points_F, cam_
     # Assuming no lens distortion
     dist_coeffs = np.zeros((5, 1))
     if enable_undistort:
+        # 使用预标定好的相机内参
         succ, mtx, dist = load_intrinsic_default(cam_name)
         if succ:
             camera_matrix = mtx
             dist_coeffs = dist
-
-    # # TODO: 适配其它相机
-    # # 东向相机 - 'B_E_232'
-    # camera_matrix = np.array(
-    #     [[4.61387542e+03, 0.00000000e+00, 2.04260043e+03],
-    #         [0.00000000e+00, 4.61293269e+03, 1.01555803e+03],
-    #         [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]],
-    #     dtype=np.float64)
-    # dist_coeffs = np.array(
-    #     [[-5.47785313e-01],  [1.21307520e+00],  [2.00770261e-03], [-9.97803869e-04], [-3.15329884e+00]],
-    #     dtype=np.float64)
 
     # Use solvePnP to compute the camera rotation and position from the 2D - 3D point corespondance
     (success, rot_vec_CF_F, trans_CF_F) = cv2.solvePnP(model_points_F, image_points, camera_matrix, dist_coeffs, flags=cv2.SOLVEPNP_ITERATIVE)

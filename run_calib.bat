@@ -21,12 +21,12 @@ set temp_path=temp
 set json_ext=.json
 set png_ext=.png
 
-set png_name_cam=10.10.145.234
+set png_name_cam=10.10.145.232
 :: A_W_231
 :: B_E_232
 :: C_S_233
 :: D_N_234
-set cam_name=D_N_234
+set cam_nam=B_E_232
 set mode=undistort
 set feat_name_cam=feature_points_%png_name_cam%
 set png_name_hd=hdmap_0
