@@ -13,6 +13,8 @@ json_ext=".json"
 png_ext=".png"
 
 png_name_cam="10.10.145.232"
+cam_name="B_E_232"
+mode="undistort"
 feat_name_cam="feature_points_"${png_name_cam}
 png_name_hd="hdmap_0"
 feat_name_hd="feature_points_"${png_name_hd}
@@ -32,7 +34,9 @@ python traj_ext/camera_calib/calib_feature_parser.py \
 # 标定
 python traj_ext/camera_calib/run_calib_manual.py \
   -calib_points ${alaco_temp_dir}/${feat_name_cam}${json_ext}"_camera_calib_manual_latlon.csv" \
-  -image ${alaco_input_dir}/${png_name_cam}${png_ext}
+  -image ${alaco_input_dir}/${png_name_cam}${png_ext} \
+  -camera_name ${cam_name} \
+  -undistort ${mode}
 
 python traj_ext/camera_calib/run_calib_manual.py \
   -calib_points ${alaco_temp_dir}/${feat_name_hd}${json_ext}"_camera_calib_manual_latlon.csv" \
@@ -41,16 +45,16 @@ python traj_ext/camera_calib/run_calib_manual.py \
 
 # 手动选取检测区域
 python traj_ext/camera_calib/run_detection_zone.py \
-  -camera_street ${temp_path}"/run_calib_manual/"${png_name_cam}"_cfg.yml" \
+  -camera_street ${temp_path}"/run_calib_manual/"${png_name_cam}"_"${mode}"_cfg.yml" \
   -image_street ${alaco_input_dir}/${png_name_cam}${png_ext} \
-  -camera_sat ${temp_path}"/run_calib_manual/"${png_name_hd}"_cfg.yml" \
+  -camera_sat ${temp_path}"/run_calib_manual/"${png_name_hd}"_distort_cfg.yml" \
   -image_sat ${alaco_input_dir}/${png_name_hd}${png_ext} \
   -output_name ${png_name_cam}
 
 
 # 显示 ROI 区域
 python traj_ext/camera_calib/run_show_calib.py \
-  --camera_calib ${temp_path}"/run_calib_manual/"${png_name_cam}"_cfg.yml" \
+  --camera_calib ${temp_path}"/run_calib_manual/"${png_name_cam}"_"${mode}"_cfg.yml" \
   --image ${alaco_input_dir}/${png_name_cam}${png_ext} \
   --detection_zone ${temp_path}"/run_detection_zone/"${png_name_cam}"_detection_zone.yml"
 
