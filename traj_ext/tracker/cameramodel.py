@@ -241,9 +241,17 @@ def display_NED_frame(image, rot_CF_F, trans_CF_F, camera_matrix, dist_coeffs, l
     pt_x = ( int(pt_test_2[0][0][0]), int(pt_test_2[0][0][1]))
     pt_y = ( int(pt_test_3[0][0][0]), int(pt_test_3[0][0][1]))
 
+    offset_text = 20  # 标识坐标
+    pt_o_text = (pt_o[0] - offset_text, pt_o[1] + offset_text)
+    pt_x_text = (pt_x[0] + offset_text, pt_x[1] + offset_text)
+    pt_y_text = (pt_y[0] + offset_text, pt_y[1] + offset_text)
+
     # Add line of axis
-    cv2.line(image, pt_o, pt_x, (255,0,0), 2)
-    cv2.line(image, pt_o, pt_y, (255,255,0), 2)
+    cv2.line(image, pt_o, pt_x, (0, 0, 255), 2)
+    cv2.line(image, pt_o, pt_y, (0, 255, 0), 2)
+    cv2.putText(image, 'O', pt_o_text, cv2.FONT_HERSHEY_COMPLEX, 1.0, (255, 0, 0), 3)
+    cv2.putText(image, 'X', pt_x_text, cv2.FONT_HERSHEY_COMPLEX, 1.0, (0, 0, 255), 3)
+    cv2.putText(image, 'Y', pt_y_text, cv2.FONT_HERSHEY_COMPLEX, 1.0, (0, 255, 0), 3)
 
     return image;
 
